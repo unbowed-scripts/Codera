@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 
+VERSION = '0.2.0'
 ROOT = Path(__file__).resolve().parent
 
 
@@ -37,6 +38,7 @@ def main():
     app = QGuiApplication(sys.argv)
     app.setOrganizationName('PythonTech')
     app.setApplicationName('PythonTech')
+    app.setApplicationVersion(VERSION)
     font = next((f for f in ['Inter', 'Segoe UI', 'Noto Sans', 'DejaVu Sans'] if f in QFontDatabase.families()), 'Sans Serif')
     app.setFont(QFont(font, 11))
     model = Backend()

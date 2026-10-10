@@ -6,3 +6,10 @@ __pycache__/
 !.env.example
 habits.json
 .habits-*.tmp
+
+# Local design history and old implementation; not part of the published app.
+archive/
+design/
+docs/CONCEPT.md
+docs/DESIGN.md
+assets/
