@@ -1,6 +1,11 @@
 name: Build installers
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: Publish a new release after successful checks
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -11,8 +16,8 @@ jobs:
         os: [ubuntu-22.04, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Install Qt system dependencies
@@ -51,19 +56,20 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging/windows.iss'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: installers-${{ runner.os }}
           path: dist/installers/*
           if-no-files-found: error
   release:
+    if: inputs.publish_release
     needs: build
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
         with:
           pattern: installers-*
           path: installers
