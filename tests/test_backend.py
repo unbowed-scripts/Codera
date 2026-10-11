@@ -92,6 +92,17 @@ class BackendTests(unittest.TestCase):
         b.open('overview', 'Web')
         self.assertFalse(b.progress['webReady'])
 
+    def test_theme_persistence_and_invalid_setting_fallback(self):
+        b = self.backend
+        for theme in ('blue', 'gray', 'light', 'green'):
+            b.theme = theme
+            self.assertEqual(Backend(self.settings).theme, theme)
+            self.assertEqual(set(b.colors), set(Backend(self.settings).colors))
+        b.theme = 'invalid'
+        self.assertEqual(b.theme, 'green')
+        self.settings.setValue('theme', 'old-unknown-theme')
+        self.assertEqual(Backend(self.settings).theme, 'green')
+
     def test_repeated_route_and_scroll(self):
         b = self.backend
         count = []

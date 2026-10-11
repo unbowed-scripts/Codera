@@ -3,8 +3,8 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 os.environ.setdefault('QT_QUICK_BACKEND', 'software')
 import tempfile
 import unittest
-from PySide6.QtGui import QGuiApplication, QInputMethodEvent
-from PySide6.QtCore import QSettings, QMetaObject, Q_ARG, Qt, QPoint, qInstallMessageHandler
+from PySide6.QtGui import QGuiApplication, QInputMethodEvent, QWheelEvent
+from PySide6.QtCore import QObject, QSettings, QMetaObject, Q_ARG, Qt, QPoint, QPointF, qInstallMessageHandler
 from PySide6.QtTest import QTest
 from PySide6.QtQuick import QQuickItem
 from backend import Backend
@@ -166,6 +166,55 @@ class QuickTests(unittest.TestCase):
         QTest.qWait(260)
         self.assertEqual(self.backend.routeKey, 'lesson:logic/1')
         self.assertFalse(self.backend.practiceCompleted)
+
+    def test_themes_update_without_losing_answer_or_scroll(self):
+        self.navigate('lesson', 'start/1')
+        self.backend.answer('start/1', 0, 'Привет, Python!')
+        self.view.setProperty('contentY', 200)
+        for theme in self.backend.themeIds:
+            self.backend.theme = theme
+            QTest.qWait(40)
+            self.assertEqual(self.window.color().name(), self.backend.colors['background'])
+            self.assertEqual(self.view.property('contentY'), 200)
+            self.assertEqual(self.backend.page['exercises'][0]['answer'], 'Привет, Python!')
+            selector = self.find('trackSelector')
+            QMetaObject.invokeMethod(selector.findChild(QObject, 'trackSelectorPopup'), 'open')
+            QTest.qWait(40)
+            popup = selector.findChild(QObject, 'trackSelectorPopup')
+            self.assertTrue(popup.property('visible'))
+            self.assertEqual(popup.property('background').property('color').name(), self.backend.colors['surface'])
+            QMetaObject.invokeMethod(popup, 'close')
+        self.window.setWidth(600)
+        QTest.qWait(40)
+        selector = self.find('themeSelector')
+        right = selector.mapToScene(QPointF(selector.width(), 0)).x()
+        self.assertLessEqual(right, self.window.width())
+        # Keyboard changes the theme through the actual selector signal.
+        selector.forceActiveFocus()
+        QTest.keyClick(self.window, Qt.Key_Home)
+        QTest.keyClick(self.window, Qt.Key_Down)
+        QTest.qWait(40)
+        self.assertEqual(self.backend.theme, 'blue')
+
+    def test_wheel_is_immediate_bounded_and_keeps_touchpad_precision(self):
+        self.navigate('lesson', 'start/1')
+        self.view.setProperty('contentY', 0)
+        pos = self.view.mapToScene(QPointF(self.view.width() / 2, self.view.height() / 2))
+        def wheel(angle, pixels=0):
+            event = QWheelEvent(pos, pos, QPoint(0, pixels), QPoint(0, angle),
+                                Qt.NoButton, Qt.NoModifier, Qt.NoScrollPhase, False)
+            QGuiApplication.sendEvent(self.window, event)
+            QTest.qWait(20)
+        wheel(-120)
+        self.assertAlmostEqual(self.view.property('contentY'), 96, delta=1)
+        wheel(0, -17)
+        self.assertAlmostEqual(self.view.property('contentY'), 113, delta=1)
+        QTest.qWait(180)
+        self.assertAlmostEqual(self.view.property('contentY'), 113, delta=1)
+        wheel(12000)
+        self.assertEqual(self.view.property('contentY'), 0)
+        wheel(-120000)
+        self.assertAlmostEqual(self.view.property('contentY'), self.view.property('contentHeight') - self.view.height(), delta=1)
 
     def test_all_pages_resize_and_reduced_motion(self):
         self.backend.reducedMotion = True
