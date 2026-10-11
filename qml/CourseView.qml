@@ -17,13 +17,14 @@ Flickable {
     Loader {
         id: loader
         objectName: 'pageLoader'
-        width: Math.min(parent.width - 12, backend.kind === 'lesson' ? 920 : 1080)
+        width: Math.min(parent.width - 12, (backend.kind === 'lesson' || backend.kind === 'checkpoint') ? 920 : 1080)
         x: Math.max(0, (parent.width - width) / 2)
         y: 0
-        sourceComponent: backend.kind === 'overview' ? overview : backend.kind === 'section' ? section : backend.kind === 'lesson' ? lesson : route
+        sourceComponent: backend.kind === 'overview' ? overview : backend.kind === 'section' ? section : backend.kind === 'lesson' ? lesson : backend.kind === 'checkpoint' ? checkpoint : route
     }
     Component { id: overview; Overview { shell: view.shell } }
     Component { id: section; SectionPage { shell: view.shell } }
     Component { id: lesson; LessonPage { shell: view.shell } }
+    Component { id: checkpoint; CheckpointPage { shell: view.shell } }
     Component { id: route; RoutePage { shell: view.shell } }
 }

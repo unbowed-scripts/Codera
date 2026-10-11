@@ -1,0 +1,62 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+Popup {
+    id: info
+    objectName: 'releaseInfo'
+    property bool about: false
+    property var opener: null
+    parent: Overlay.overlay
+    anchors.centerIn: parent
+    width: Math.min(620, parent.width - 32)
+    height: Math.min(640, parent.height - 32)
+    padding: width < 400 ? 16 : 24
+    modal: true
+    focus: true
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+    onOpened: { infoScroll.contentY = 0; closeInfo.forceActiveFocus() }
+    onClosed: if (opener) opener.forceActiveFocus()
+    background: Rectangle { radius: 18; color: backend.colors.background; border.color: backend.colors.border }
+    Overlay.modal: Rectangle { color: backend.colors.overlay }
+    contentItem: ColumnLayout {
+        spacing: 16
+        Copy { Layout.fillWidth: true; text: info.about ? 'О разработке' : 'Журнал обновлений'; font.pixelSize: 26; font.weight: Font.DemiBold }
+        Flickable {
+            id: infoScroll
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: width
+            contentHeight: body.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: AppScrollBar {}
+            FastScroll { scroller: infoScroll }
+            Copy {
+                id: body
+                objectName: 'releaseInfoText'
+                width: parent.width - 14
+                textFormat: Text.RichText
+                text: info.about
+                    ? '<p><b>PythonTech</b> · версия 0.4.0</p>'
+                      + '<p>Автор: <b>Unbowed / byteix</b>.</p>'
+                      + '<p>Бесплатный проект с открытым исходным кодом для изучения программирования. Код распространяется по лицензии MIT.</p>'
+                      + '<p>Идея проста: без лишних историй — коротко, понятно и по делу. Основное правило, рабочий пример и практика помогают легко запомнить материал.</p>'
+                      + '<p>Учись в своём темпе: читай объяснения, разбирай код и пиши свои программы. Для занятий не нужны аккаунт и постоянный интернет.</p>'
+                    : '<p><b>0.4.0 · Настройки и обучение</b></p>'
+                      + '<p><b>Добавлено</b></p><ul>'
+                      + '<li>Меню языка интерфейса: русский доступен; English и Українська готовятся.</li>'
+                      + '<li>Выбор четырёх тем в ряд с реальными скриншотами и диагональными краями.</li>'
+                      + '<li>Журнал обновлений и страница об авторе и идее проекта.</li>'
+                      + '<li>Итоговые тесты, мини-проекты и подсказки для разделов Python Core.</li>'
+                      + '<li>Каталог языков с аватарками и программами будущих курсов.</li></ul>'
+                      + '<p><b>Изменено</b></p><ul>'
+                      + '<li>Объяснения уроков разбиты на короткие абзацы с выделением главного.</li>'
+                      + '<li>Настройки адаптируются к узкому окну и доступны с клавиатуры.</li>'
+                      + '<li>Документация дополнена схемами и описанием релиза.</li></ul>'
+                      + '<p><b>0.3.0</b></p><p>Предыдущая настольная версия. Подробности доступны в описании опубликованного релиза.</p>'
+            }
+        }
+        AppButton { id: closeInfo; objectName: 'closeInfo'; text: 'Закрыть'; Layout.alignment: Qt.AlignRight; onClicked: info.close() }
+    }
+}

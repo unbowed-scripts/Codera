@@ -6,7 +6,7 @@ ApplicationWindow {
     id: window
     objectName: 'window'
     width: 1380; height: 940
-    minimumWidth: 600; minimumHeight: 600
+    minimumWidth: 320; minimumHeight: 320
     visible: true
     color: backend.colors.background
     palette.window: backend.colors.background
@@ -20,6 +20,7 @@ ApplicationWindow {
     title: 'PythonTech'
     property bool inCourse: false
     property bool compact: width < 1000
+    readonly property bool phone: width < 600
     property bool drawerOpen: false
     property bool changing: false
     property string pendingKind: ''
@@ -29,6 +30,16 @@ ApplicationWindow {
 
     function enterCourse() { inCourse = true }
     function leaveCourse() { drawerOpen = false; inCourse = false }
+    function goBack() {
+        if (settingsMenu.closeInfo()) return
+        if (settingsMenu.opened) { settingsMenu.close(); return }
+        if (drawerOpen) { drawerOpen = false; return }
+        if (!inCourse) { close(); return }
+        if (backend.kind === 'lesson') navigate('section', backend.page.sectionKey)
+        else if (backend.kind !== 'overview') navigate('overview', backend.track)
+        else leaveCourse()
+    }
+    Shortcut { sequence: 'Back'; onActivated: window.goBack() }
     function navigate(kind, key) {
         if (!backend.validRoute(kind, key)) return
         drawerOpen = false
@@ -74,33 +85,24 @@ ApplicationWindow {
         height: 72; color: backend.colors.background
         Rectangle { height: 1; color: backend.colors.border; anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 24; rightMargin: 24 } }
         RowLayout {
-            anchors { fill: parent; leftMargin: 28; rightMargin: 24 }
-            spacing: 16
+            anchors { fill: parent; leftMargin: window.phone ? 12 : 28; rightMargin: window.phone ? 12 : 24 }
+            spacing: window.phone ? 8 : 16
             Copy { text: '[p.]'; color: backend.colors.accent; font.pixelSize: 26; font.bold: true }
             Copy { visible: !window.compact; text: 'PythonTech'; font.pixelSize: 15; font.weight: Font.DemiBold }
             Item { Layout.fillWidth: true }
-            AppComboBox {
-                objectName: 'themeSelector'
-                Layout.preferredWidth: window.compact ? 132 : 154
-                model: backend.themeNames
-                currentIndex: backend.themeIds.indexOf(backend.theme)
-                onActivated: backend.theme = backend.themeIds[currentIndex]
-                Accessible.name: 'Цветовая тема'
-            }
-            CheckBox {
-                id: motionToggle
-                text: window.compact ? 'Без анимации' : 'Меньше анимации'; checked: backend.reducedMotion
-                onToggled: backend.reducedMotion = checked
-                palette.windowText: backend.colors.muted; palette.highlight: backend.colors.accent
-                font.pixelSize: 12
-                indicator: Rectangle { x: 4; y: (motionToggle.height - height) / 2; width: 18; height: 18; radius: 5; color: motionToggle.checked ? backend.colors.accent : backend.colors.surface; border.color: motionToggle.activeFocus ? backend.colors.text : backend.colors.border }
+            AppButton {
+                id: settingsButton
+                objectName: 'openSettings'
+                text: 'Настройки'
+                onClicked: { window.drawerOpen = false; settingsMenu.open() }
             }
             AppButton { text: window.compact ? 'Язык' : 'Сменить язык'; quiet: true; visible: window.inCourse; onClicked: window.leaveCourse() }
         }
     }
+    SettingsMenu { id: settingsMenu; opener: settingsButton }
     Landing { anchors.fill: parent; shell: window; visible: !window.inCourse; running: visible && window.visible && window.visibility !== Window.Minimized }
     Item {
-        anchors { fill: parent; margins: 24; topMargin: 12 }
+        anchors { fill: parent; margins: window.phone ? 12 : 24; topMargin: 12 }
         visible: window.inCourse
         RowLayout {
             id: stage
@@ -110,8 +112,8 @@ ApplicationWindow {
             AppButton { objectName: 'topicsToggle'; visible: window.compact; text: window.drawerOpen ? 'Закрыть темы' : '☰  Темы'; onClicked: window.drawerOpen = !window.drawerOpen }
             Item { Layout.fillWidth: true }
             AppButton { text: 'Джуниор'; selected: true }
-            AppButton { text: window.compact ? 'Средний' : 'Средний · скоро'; enabled: false }
-            AppButton { text: window.compact ? 'Высокий' : 'Высокий · скоро'; enabled: false }
+            AppButton { text: window.compact ? 'Средний' : 'Средний · скоро'; enabled: false; visible: !window.phone }
+            AppButton { text: window.compact ? 'Высокий' : 'Высокий · скоро'; enabled: false; visible: !window.phone }
         }
         Sidebar {
             id: sidebar

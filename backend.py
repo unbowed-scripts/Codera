@@ -2,16 +2,19 @@
 from PySide6.QtCore import QObject, Property, Signal, Slot, QSettings
 from PySide6.QtGui import QGuiApplication
 from curriculum import TRACKS, LESSONS, check_answer
+from section_content import PROJECTS, questions
+from language_catalog import LANGUAGES, FUTURE_LANGUAGES
 from themes import PALETTES, THEME_NAMES
 
 ROUTE = [
     ('Теория', 'Короткое объяснение и понятный пример.'),
     ('Разбор кода', 'Разбираемся, что делает каждая строка.'),
-    ('Самостоятельный разбор', 'Пробуем предсказать результат программы.'),
+    ('Самостоятельный разбор', 'Предсказываем результат и выбираем объяснения частей кода.'),
     ('Обратная связь', 'Сравниваем ответ с объяснением и подсказками.'),
-    ('Практика', 'Закрепляем изученное небольшими заданиями.'),
+    ('Практика с подсказками', 'Пишем свой код. Если трудно — открываем подсказки и возвращаемся к примеру.'),
     ('Читаемый код', 'Учимся объяснять свои решения.'),
-    ('Свой проект', 'Объединяем знания в работающую программу.'),
+    ('Тест после раздела', 'После всех 6 уровней Python Core отвечаем на 6 вопросов и разбираем 2 фрагмента кода. Ошибки можно исправлять.'),
+    ('Мини-проект раздела', 'После теста изучаем готовый пример с разбором, пишем свою версию и проверяем её по критериям. Выполнение проекта отмечаем самостоятельно.'),
     ('Повторение', 'Возвращаемся к знакомым темам в своём темпе.'),
 ]
 
@@ -23,6 +26,7 @@ class Backend(QObject):
     feedbackChanged = Signal()
     motionChanged = Signal()
     themeChanged = Signal()
+    assessmentChanged = Signal()
 
     def __init__(self, settings=None):
         super().__init__()
@@ -42,6 +46,18 @@ class Backend(QObject):
         self.drafts = {}
         self.scrolls = {}
         self.results = {}
+        self.section_tests = set(self.settings.value('sectionTests', [], type=list)) & PROJECTS.keys()
+        self.section_projects = set(self.settings.value('sectionProjects', [], type=list)) & PROJECTS.keys()
+        self.test_drafts = {}
+        self.test_results = {}
+
+    @Property('QVariantList', constant=True)
+    def languages(self):
+        return LANGUAGES
+
+    @Property('QVariantList', constant=True)
+    def futureLanguages(self):
+        return FUTURE_LANGUAGES
 
     @Property(str, notify=themeChanged)
     def theme(self):
@@ -92,7 +108,8 @@ class Backend(QObject):
     def section(self, section):
         levels = [self.level(f'{section.id}/{i}') for i in range(1, len(section.levels)+1)]
         return dict(key=section.id, title=section.title, outcome=section.outcome,
-                    levels=levels, count=len(levels), ready=sum(v['available'] for v in levels))
+                    levels=levels, count=len(levels), ready=sum(v['available'] for v in levels),
+                    checkpoint=section.id in PROJECTS, **self.section_status(section.id))
 
     @Property('QVariantList', notify=catalogChanged)
     def sections(self):
@@ -100,6 +117,12 @@ class Backend(QObject):
 
     @Property('QVariantMap', notify=pageChanged)
     def page(self):
+        if self._kind == 'checkpoint':
+            project = PROJECTS[self._key]
+            return dict(key=self._key, title=self.sections_by_id[self._key][1].title,
+                        project={k: v for k, v in project.items() if k != 'reviews'},
+                        questions=[{k: v for k, v in q.items() if k not in ('answer', 'correct', 'explanation', 'hint')}
+                                   for q in questions(self._key)])
         if self._kind == 'section':
             return self.section(self.sections_by_id[self._key][1])
         if self._kind == 'lesson':
@@ -111,6 +134,7 @@ class Backend(QObject):
                 data.update(theory=lesson.theory, code=lesson.code, explanation=lesson.explanation,
                             remember=lesson.remember, practice=lesson.practice, criteria=lesson.criteria,
                             isCoreFinal=self._key == 'practice/6',
+                            isSectionFinal=data['sectionKey'] in PROJECTS and data['index'] == 6,
                             exercises=[{'prompt': e.prompt, 'answer': self.drafts.get(self._key, ['']*len(lesson.exercises))[i]}
                                        for i, e in enumerate(lesson.exercises)])
             else:
@@ -123,11 +147,17 @@ class Backend(QObject):
         keys = {key for key, info in self.levels.items() if info[0] == self._track}
         ready = [key for key in self.levels if key in keys and key in LESSONS]
         next_key = next((key for key in ready if key not in self.completed), ready[0] if ready else '')
-        return dict(done=len(keys & self.completed), total=len(keys), ready=len(ready),
+        pending = next((section.id for section in TRACKS[self._track]
+                        if section.id in PROJECTS and self.section_status(section.id)['unlocked']
+                        and not (section.id in self.section_tests and section.id in self.section_projects)), '')
+        return dict(nextKind='checkpoint' if pending else 'lesson', continueKey=pending or next_key,
+                    sectionTests=len({s.id for s in TRACKS[self._track]} & self.section_tests),
+                    sectionProjects=len({s.id for s in TRACKS[self._track]} & self.section_projects),
+                    done=len(keys & self.completed), total=len(keys), ready=len(ready),
                     practiced=len(keys & self.practiced),
-                    webReady=self._track == 'Python Core' and keys <= (self.completed & self.practiced),
+                    webReady=self._track == 'Python Core' and keys <= (self.completed & self.practiced) and PROJECTS.keys() <= (self.section_tests & self.section_projects),
                     readyDone=len(set(ready) & self.completed), nextKey=next_key,
-                    nextTitle=self.levels[next_key][3] if next_key else 'Маршрут уже намечен',
+                    nextTitle=('Тест и проект: ' + self.sections_by_id[pending][1].title) if pending else self.levels[next_key][3] if next_key else 'Маршрут уже намечен',
                     repeat=bool(ready) and set(ready) <= self.completed)
 
     @Property('QVariantList', constant=True)
@@ -174,6 +204,7 @@ class Backend(QObject):
         return ((kind == 'overview' and key in TRACKS)
                 or (kind == 'section' and key in self.sections_by_id)
                 or (kind == 'lesson' and key in self.levels)
+                or (kind == 'checkpoint' and key in PROJECTS)
                 or (kind == 'route' and key == 'guide'))
 
     @Property('QVariantList', notify=progressChanged)
@@ -184,6 +215,8 @@ class Backend(QObject):
     def open(self, kind, key):
         if kind == 'overview' and key in TRACKS:
             track = key
+        elif kind == 'checkpoint' and key in PROJECTS:
+            track = self.sections_by_id[key][0]
         elif kind == 'section' and key in self.sections_by_id:
             track = self.sections_by_id[key][0]
         elif kind == 'lesson' and key in self.levels:
@@ -201,6 +234,7 @@ class Backend(QObject):
         self.pageChanged.emit()
         self.progressChanged.emit()
         self.feedbackChanged.emit()
+        self.assessmentChanged.emit()
         return True
 
     @Slot(str, float)
@@ -243,6 +277,7 @@ class Backend(QObject):
             saved = self.settings.status() == QSettings.NoError
             message = 'Разбор пройден. Закрепи его самостоятельной практикой. ' + ('Прогресс сохранён.' if saved else 'Не удалось сохранить на диске; результат доступен до закрытия приложения.')
             self.progressChanged.emit()
+            self.catalogChanged.emit()
         else:
             message = 'Подсказки под ответами помогут разобраться.'
         self.results[self._key] = dict(items=items, message=message, passed=passed)
@@ -261,3 +296,86 @@ class Backend(QObject):
     def copyCode(self):
         if self._kind == 'lesson' and self._key in LESSONS:
             QGuiApplication.clipboard().setText(LESSONS[self._key].code)
+
+    def section_status(self, key):
+        required = {f'{key}/{i}' for i in range(1, 7)}
+        return dict(unlocked=key in PROJECTS and required <= self.completed,
+                    levelsDone=len(required & self.completed),
+                    testPassed=key in self.section_tests,
+                    projectDone=key in self.section_projects)
+
+    @Property('QVariantMap', notify=assessmentChanged)
+    def assessment(self):
+        if self._kind != 'checkpoint':
+            return dict(unlocked=False, levelsDone=0, testPassed=False, projectDone=False,
+                        answers=[], items=[], message='')
+        result = self.test_results.get(self._key, dict(items=[], message=''))
+        return dict(**self.section_status(self._key), **result,
+                    answers=self.test_drafts.get(self._key, [''] * len(questions(self._key))))
+
+    @Slot(int, str)
+    def answerTest(self, index, value):
+        if self._kind != 'checkpoint' or not self.section_status(self._key)['unlocked']:
+            return
+        count = len(questions(self._key))
+        if not 0 <= index < count:
+            return
+        self.test_drafts.setdefault(self._key, [''] * count)[index] = value
+        if self._key in self.test_results:
+            self.test_results[self._key]['items'][index] = dict(ok=False, text='')
+            self.test_results[self._key]['message'] = ''
+        self.assessmentChanged.emit()
+
+    @Slot()
+    def checkTest(self):
+        if self._kind != 'checkpoint' or not self.section_status(self._key)['unlocked']:
+            return
+        tasks = questions(self._key)
+        answers = self.test_drafts.get(self._key, [''] * len(tasks))
+        items = []
+        for question, answer in zip(tasks, answers):
+            expected = str(question['correct']) if question['options'] else question['answer']
+            ok = answer.strip() == expected
+            text = question['explanation'] if ok else ('Выбери или введи ответ. ' if not answer else 'Попробуй ещё раз. ') + question['hint']
+            items.append(dict(ok=ok, text=text))
+        passed = all(item['ok'] for item in items)
+        if passed:
+            self.section_tests.add(self._key)
+            self.settings.setValue('sectionTests', sorted(self.section_tests))
+            self.settings.sync()
+        score = sum(item['ok'] for item in items)
+        self.test_results[self._key] = dict(items=items, message=f'Верно: {score} / {len(items)}. ' +
+            ('Тест пройден! Теперь создай свою версию мини-проекта.' if passed else 'Посмотри подсказки и исправь ответы. Число попыток не ограничено.'))
+        self.assessmentChanged.emit()
+        self.progressChanged.emit()
+        self.catalogChanged.emit()
+
+    @Slot(bool)
+    def markProject(self, done):
+        if (self._kind != 'checkpoint' or not self.section_status(self._key)['unlocked']
+                or self._key not in self.section_tests):
+            return
+        if done:
+            self.section_projects.add(self._key)
+        else:
+            self.section_projects.discard(self._key)
+        self.settings.setValue('sectionProjects', sorted(self.section_projects))
+        self.settings.sync()
+        self.assessmentChanged.emit()
+        self.progressChanged.emit()
+        self.catalogChanged.emit()
+
+    @Slot()
+    def copyProject(self):
+        if self._kind == 'checkpoint' and self.section_status(self._key)['unlocked']:
+            QGuiApplication.clipboard().setText(PROJECTS[self._key]['code'])
+
+    @Slot(result=str)
+    def nextSection(self):
+        if self._kind != 'checkpoint' or not self.section_status(self._key)['unlocked']:
+            return ''
+        if self._key not in self.section_tests or self._key not in self.section_projects:
+            return ''
+        sections = TRACKS[self._track]
+        index = next(i for i, section in enumerate(sections) if section.id == self._key)
+        return sections[index + 1].id if index + 1 < len(sections) else ''

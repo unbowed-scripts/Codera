@@ -6,6 +6,7 @@ import unittest
 from PySide6.QtCore import QSettings
 from backend import Backend
 from curriculum import TRACKS, LESSONS
+from section_content import PROJECTS
 
 
 class BackendTests(unittest.TestCase):
@@ -88,6 +89,9 @@ class BackendTests(unittest.TestCase):
         self.assertFalse(b.practiceCompleted)
         b.completed = set(LESSONS)
         b.practiced = set(LESSONS)
+        self.assertFalse(b.progress['webReady'])
+        b.section_tests = set(PROJECTS)
+        b.section_projects = set(PROJECTS)
         self.assertTrue(b.progress['webReady'])
         b.open('overview', 'Web')
         self.assertFalse(b.progress['webReady'])

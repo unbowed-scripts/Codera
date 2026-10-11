@@ -81,4 +81,4 @@ jobs:
           cd installers
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh release create v0.3.0 installers/* --target "$GITHUB_SHA" --title 'PythonTech 0.3.0' --notes-file packaging/RELEASE_NOTES.md
+          gh release create v0.4.0 installers/* --target "$GITHUB_SHA" --title 'PythonTech 0.4.0' --notes-file packaging/RELEASE_NOTES.md
