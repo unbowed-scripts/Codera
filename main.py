@@ -20,6 +20,10 @@ def ensure_runtime():
 
 
 def create_engine(backend):
+    from PySide6.QtQuickControls2 import QQuickStyle
+    # Use the same customizable controls in the app and every test platform.
+    if QQuickStyle.name() != 'Basic':
+        QQuickStyle.setStyle('Basic')
     from PySide6.QtQuick import QQuickWindow  # Register the Python window wrapper.
     from PySide6.QtQml import QQmlApplicationEngine
     from PySide6.QtCore import QUrl
@@ -32,9 +36,7 @@ def create_engine(backend):
 def main():
     ensure_runtime()
     from PySide6.QtGui import QGuiApplication, QFont, QFontDatabase
-    from PySide6.QtQuickControls2 import QQuickStyle
     from backend import Backend
-    QQuickStyle.setStyle('Basic')
     app = QGuiApplication(sys.argv)
     app.setOrganizationName('PythonTech')
     app.setApplicationName('PythonTech')
