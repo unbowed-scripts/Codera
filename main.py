@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 ROOT = Path(__file__).resolve().parent
 
 
@@ -41,13 +41,41 @@ def main():
     app.setApplicationVersion(VERSION)
     font = next((f for f in ['Inter', 'Segoe UI', 'Noto Sans', 'DejaVu Sans'] if f in QFontDatabase.families()), 'Sans Serif')
     app.setFont(QFont(font, 11))
-    model = Backend()
+    smoke_settings = None
+    smoke_folder = None
+    if '--smoke-test' in sys.argv:
+        import tempfile
+        from PySide6.QtCore import QSettings
+        smoke_folder = tempfile.TemporaryDirectory()
+        smoke_settings = QSettings(str(Path(smoke_folder.name) / 'state.ini'), QSettings.IniFormat)
+    model = Backend(smoke_settings)
+    smoke_errors = []
+    if smoke_folder is not None:
+        from PySide6.QtCore import qInstallMessageHandler, QtMsgType
+        def record_message(kind, context, message):
+            if kind in (QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg):
+                smoke_errors.append(message)
+                if sys.stderr is not None:
+                    print(message, file=sys.stderr)
+        qInstallMessageHandler(record_message)
     engine = create_engine(model)
     if not engine.rootObjects():
         return 1
+    if '--smoke-test' in sys.argv:
+        # Isolate smoke tests from real user settings and render representative pages.
+        from PySide6.QtCore import QTimer, QMetaObject
+        def verify_bundle():
+            QMetaObject.invokeMethod(engine.rootObjects()[0], 'enterCourse')
+            model.open('lesson', 'practice/6')
+            model.theme = 'light'
+            QTimer.singleShot(200, lambda: app.exit(1 if smoke_errors else 0))
+        QTimer.singleShot(100, verify_bundle)
     result = app.exec()
     # Destroy QML while its backend is still alive.
     del engine
+    if smoke_folder is not None:
+        qInstallMessageHandler(None)
+        smoke_folder.cleanup()
     return result
 
 

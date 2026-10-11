@@ -13,3 +13,8 @@ design/
 docs/CONCEPT.md
 docs/DESIGN.md
 assets/
+
+# Generated installers and local build environments.
+.build-venv/
+build/
+dist/

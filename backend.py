@@ -2,6 +2,7 @@
 from PySide6.QtCore import QObject, Property, Signal, Slot, QSettings
 from PySide6.QtGui import QGuiApplication
 from curriculum import TRACKS, LESSONS, check_answer
+from themes import PALETTES, THEME_NAMES
 
 ROUTE = [
     ('Теория', 'Короткое объяснение и понятный пример.'),
@@ -21,6 +22,7 @@ class Backend(QObject):
     progressChanged = Signal()
     feedbackChanged = Signal()
     motionChanged = Signal()
+    themeChanged = Signal()
 
     def __init__(self, settings=None):
         super().__init__()
@@ -28,6 +30,8 @@ class Backend(QObject):
         self.completed = set(self.settings.value('completed', [], type=list)) & LESSONS.keys()
         self.practiced = set(self.settings.value('practiced', [], type=list)) & LESSONS.keys()
         self._reduced = self.settings.value('reducedMotion', False, type=bool)
+        theme = self.settings.value('theme', 'green', type=str)
+        self._theme = theme if theme in PALETTES else 'green'
         self.sections_by_id = {s.id: (track, s) for track, sections in TRACKS.items() for s in sections}
         self.levels = {f'{s.id}/{i}': (track, s, i, title)
                        for track, sections in TRACKS.items() for s in sections
@@ -38,6 +42,30 @@ class Backend(QObject):
         self.drafts = {}
         self.scrolls = {}
         self.results = {}
+
+    @Property(str, notify=themeChanged)
+    def theme(self):
+        return self._theme
+
+    @theme.setter
+    def theme(self, value):
+        if value in PALETTES and value != self._theme:
+            self._theme = value
+            self.settings.setValue('theme', value)
+            self.settings.sync()
+            self.themeChanged.emit()
+
+    @Property('QVariantMap', notify=themeChanged)
+    def colors(self):
+        return PALETTES[self._theme].copy()
+
+    @Property('QVariantList', constant=True)
+    def themeIds(self):
+        return list(THEME_NAMES)
+
+    @Property('QVariantList', constant=True)
+    def themeNames(self):
+        return list(THEME_NAMES.values())
 
     @Property(str, notify=pageChanged)
     def kind(self):
