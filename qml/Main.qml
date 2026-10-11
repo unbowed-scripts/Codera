@@ -8,7 +8,15 @@ ApplicationWindow {
     width: 1380; height: 940
     minimumWidth: 600; minimumHeight: 600
     visible: true
-    color: '#111413'
+    color: backend.colors.background
+    palette.window: backend.colors.background
+    palette.windowText: backend.colors.text
+    palette.text: backend.colors.text
+    palette.base: backend.colors.input
+    palette.button: backend.colors.button
+    palette.buttonText: backend.colors.text
+    palette.highlight: backend.colors.accent
+    palette.highlightedText: backend.colors.onAccent
     title: 'PythonTech'
     property bool inCourse: false
     property bool compact: width < 1000
@@ -50,8 +58,8 @@ ApplicationWindow {
             else fadeIn.restart()
         }) })
     }
-    NumberAnimation { id: fadeOut; target: course; property: 'opacity'; to: 0; duration: 75; easing.type: Easing.OutQuad; onFinished: window.commitPage() }
-    NumberAnimation { id: fadeIn; target: course; property: 'opacity'; from: 0; to: 1; duration: 130; easing.type: Easing.OutCubic }
+    NumberAnimation { id: fadeOut; target: course; property: 'opacity'; to: 0; duration: 45; easing.type: Easing.OutQuad; onFinished: window.commitPage() }
+    NumberAnimation { id: fadeIn; target: course; property: 'opacity'; from: 0; to: 1; duration: 85; easing.type: Easing.OutCubic }
     Connections {
         target: backend
         function onMotionChanged() {
@@ -63,23 +71,31 @@ ApplicationWindow {
         }
     }
     header: Rectangle {
-        height: 72; color: '#111413'
-        Rectangle { height: 1; color: '#303b33'; anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 24; rightMargin: 24 } }
+        height: 72; color: backend.colors.background
+        Rectangle { height: 1; color: backend.colors.border; anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 24; rightMargin: 24 } }
         RowLayout {
             anchors { fill: parent; leftMargin: 28; rightMargin: 24 }
             spacing: 16
-            Copy { text: '[p.]'; color: '#a6efbd'; font.pixelSize: 26; font.bold: true }
-            Copy { text: 'PythonTech'; font.pixelSize: 15; font.weight: Font.DemiBold }
+            Copy { text: '[p.]'; color: backend.colors.accent; font.pixelSize: 26; font.bold: true }
+            Copy { visible: !window.compact; text: 'PythonTech'; font.pixelSize: 15; font.weight: Font.DemiBold }
             Item { Layout.fillWidth: true }
+            AppComboBox {
+                objectName: 'themeSelector'
+                Layout.preferredWidth: window.compact ? 132 : 154
+                model: backend.themeNames
+                currentIndex: backend.themeIds.indexOf(backend.theme)
+                onActivated: backend.theme = backend.themeIds[currentIndex]
+                Accessible.name: 'Цветовая тема'
+            }
             CheckBox {
                 id: motionToggle
-                text: 'Меньше анимации'; checked: backend.reducedMotion
+                text: window.compact ? 'Без анимации' : 'Меньше анимации'; checked: backend.reducedMotion
                 onToggled: backend.reducedMotion = checked
-                palette.windowText: '#adb9b0'; palette.highlight: '#a6efbd'
+                palette.windowText: backend.colors.muted; palette.highlight: backend.colors.accent
                 font.pixelSize: 12
-                indicator: Rectangle { x: 4; y: (motionToggle.height - height) / 2; width: 18; height: 18; radius: 5; color: motionToggle.checked ? '#a6efbd' : '#191e1b'; border.color: motionToggle.activeFocus ? '#edf2ee' : '#809588' }
+                indicator: Rectangle { x: 4; y: (motionToggle.height - height) / 2; width: 18; height: 18; radius: 5; color: motionToggle.checked ? backend.colors.accent : backend.colors.surface; border.color: motionToggle.activeFocus ? backend.colors.text : backend.colors.border }
             }
-            AppButton { text: 'Сменить язык'; quiet: true; visible: window.inCourse; onClicked: window.leaveCourse() }
+            AppButton { text: window.compact ? 'Язык' : 'Сменить язык'; quiet: true; visible: window.inCourse; onClicked: window.leaveCourse() }
         }
     }
     Landing { anchors.fill: parent; shell: window; visible: !window.inCourse; running: visible && window.visible && window.visibility !== Window.Minimized }
@@ -90,7 +106,7 @@ ApplicationWindow {
             id: stage
             anchors { top: parent.top; left: parent.left; right: parent.right }
             height: 48; spacing: 8
-            Copy { text: 'Учебное пространство'; font.pixelSize: 12; color: '#adb9b0'; visible: !window.compact }
+            Copy { text: 'Учебное пространство'; font.pixelSize: 12; color: backend.colors.muted; visible: !window.compact }
             AppButton { objectName: 'topicsToggle'; visible: window.compact; text: window.drawerOpen ? 'Закрыть темы' : '☰  Темы'; onClicked: window.drawerOpen = !window.drawerOpen }
             Item { Layout.fillWidth: true }
             AppButton { text: 'Джуниор'; selected: true }
@@ -115,7 +131,7 @@ ApplicationWindow {
         Rectangle {
             anchors { fill: parent; topMargin: 64 }
             visible: window.compact && window.drawerOpen
-            color: '#b0111413'
+            color: backend.colors.overlay
             z: 2
             MouseArea { anchors.fill: parent; onClicked: window.drawerOpen = false }
             Sidebar { anchors { top: parent.top; left: parent.left; bottom: parent.bottom } width: Math.min(380, parent.width); shell: window }

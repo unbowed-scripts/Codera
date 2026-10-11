@@ -7,11 +7,13 @@ Flickable {
     clip: true
     boundsBehavior: Flickable.StopAtBounds
     flickableDirection: Flickable.VerticalFlick
+    flickDeceleration: 6000
+    FastScroll { scroller: view }
     contentWidth: width
     contentHeight: loader.height + 32
     function stopScroll() { cancelFlick() }
     function restoreScroll(y) { contentY = Math.max(0, Math.min(y, contentHeight - height)) }
-    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+    ScrollBar.vertical: AppScrollBar {}
     Loader {
         id: loader
         objectName: 'pageLoader'

@@ -1,6 +1,6 @@
 import QtQuick
 Text {
-    color: '#edf2ee'
+    color: backend.colors.text
     font.pixelSize: 15
     wrapMode: Text.WordWrap
     textFormat: Text.PlainText

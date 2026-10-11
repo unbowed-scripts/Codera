@@ -7,7 +7,7 @@ Column {
     spacing: 20
     AppButton { text: '←  Все разделы'; quiet: true; onClicked: page.shell.navigate('overview', backend.track) }
     Copy { objectName: 'pageTitle'; width: parent.width; text: 'Твой маршрут обучения'; font.pixelSize: 32; font.weight: Font.DemiBold }
-    Copy { width: parent.width; text: 'Одна тема — одно небольшое восхождение.'; color: '#adb9b0' }
+    Copy { width: parent.width; text: 'Одна тема — одно небольшое восхождение.'; color: backend.colors.muted }
     Mountain { width: parent.width }
     Repeater {
         model: backend.route
@@ -19,11 +19,11 @@ Column {
                 id: row
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
                 spacing: 20
-                Copy { text: ('0' + (index+1)).slice(-2); color: '#a6efbd'; font.pixelSize: 22 }
+                Copy { text: ('0' + (index+1)).slice(-2); color: backend.colors.accent; font.pixelSize: 22 }
                 ColumnLayout {
                     Layout.fillWidth: true; spacing: 8
                     Copy { Layout.fillWidth: true; text: modelData.title; font.pixelSize: 18; font.weight: Font.DemiBold }
-                    Copy { Layout.fillWidth: true; text: modelData.description; color: '#adb9b0' }
+                    Copy { Layout.fillWidth: true; text: modelData.description; color: backend.colors.muted }
                 }
             }
         }

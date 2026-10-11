@@ -9,7 +9,7 @@ Column {
     spacing: 22
     onLessonChanged: copied.text = 'Копировать'
     AppButton { text: '←  К разделу'; quiet: true; onClicked: page.shell.navigate('section', page.lesson.sectionKey) }
-    Copy { width: parent.width; text: (page.lesson.sectionTitle || '') + ' / Уровень ' + (page.lesson.index || ''); color: '#adb9b0'; font.pixelSize: 12 }
+    Copy { width: parent.width; text: (page.lesson.sectionTitle || '') + ' / Уровень ' + (page.lesson.index || ''); color: backend.colors.muted; font.pixelSize: 12 }
     Copy { objectName: 'pageTitle'; width: parent.width; text: page.lesson.title || ''; font.pixelSize: 32; font.weight: Font.DemiBold }
     Card {
         width: parent.width
@@ -20,7 +20,7 @@ Column {
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 24 }
             spacing: 16
             Copy { width: parent.width; text: 'Скоро здесь будет новый урок'; font.pixelSize: 22 }
-            Copy { width: parent.width; text: 'Тема включена в маршрут. Объяснение и задания пока готовятся.'; color: '#adb9b0' }
+            Copy { width: parent.width; text: 'Тема включена в маршрут. Объяснение и задания пока готовятся.'; color: backend.colors.muted }
         }
     }
     Card {
@@ -31,24 +31,24 @@ Column {
             id: theory
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 24 }
             spacing: 20
-            Copy { width: parent.width; text: '01 / РАЗБЕРЁМСЯ'; font.pixelSize: 11; color: '#adb9b0' }
+            Copy { width: parent.width; text: '01 / РАЗБЕРЁМСЯ'; font.pixelSize: 11; color: backend.colors.muted }
             Copy { width: parent.width; text: page.lesson.theory || ''; font.pixelSize: 16 }
             Card {
-                width: parent.width; height: example.height + 40; color: '#0f1912'
+                width: parent.width; height: example.height + 40; color: backend.colors.code
                 Column {
                     id: example
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
                     spacing: 18
                     RowLayout {
                         width: parent.width
-                        Copy { text: 'PYTHON'; color: '#adb9b0'; font.pixelSize: 11 }
+                        Copy { text: 'PYTHON'; color: backend.colors.muted; font.pixelSize: 11 }
                         Item { Layout.fillWidth: true }
                         AppButton { id: copied; text: 'Копировать'; quiet: true; onClicked: { backend.copyCode(); text = 'Скопировано' } }
                     }
-                    Copy { width: parent.width; text: page.lesson.code || ''; color: '#b5f3c8'; font.family: 'monospace'; font.pixelSize: 14 }
+                    Copy { width: parent.width; text: page.lesson.code || ''; color: backend.colors.codeText; font.family: 'monospace'; font.pixelSize: 14 }
                 }
             }
-            Copy { width: parent.width; text: page.lesson.explanation || ''; color: '#adb9b0' }
+            Copy { width: parent.width; text: page.lesson.explanation || ''; color: backend.colors.muted }
         }
     }
     Copy { visible: page.lesson.available; width: parent.width; text: 'Теперь твоя очередь'; font.pixelSize: 23; font.weight: Font.DemiBold }
@@ -65,43 +65,43 @@ Column {
                 id: exerciseContent
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: 24 }
                 spacing: 14
-                Copy { width: parent.width; text: 'ЗАДАНИЕ ' + (exercise.index+1); font.pixelSize: 11; color: '#adb9b0' }
+                Copy { width: parent.width; text: 'ЗАДАНИЕ ' + (exercise.index+1); font.pixelSize: 11; color: backend.colors.muted }
                 Copy { width: parent.width; text: exercise.modelData.prompt; font.pixelSize: 16 }
                 TextField {
                     id: input
                     objectName: 'answer' + exercise.index
                     width: parent.width; height: 46
-                    color: '#edf2ee'; placeholderTextColor: '#94a59a'; font.pixelSize: 15
+                    color: backend.colors.text; placeholderTextColor: backend.colors.muted; font.pixelSize: 15
                     text: exercise.modelData.answer
                     placeholderText: 'Введи свой ответ'
                     selectByMouse: true
                     Accessible.name: 'Ответ на задание ' + (exercise.index+1)
                     onTextEdited: backend.answer(page.lesson.key, exercise.index, text)
                     onAccepted: backend.check()
-                    background: Rectangle { color: '#111a14'; radius: 10; border.width: input.activeFocus ? 2 : 1; border.color: exercise.feedback.text ? (exercise.feedback.ok ? '#a6efbd' : '#f0cc8c') : input.activeFocus ? '#a6efbd' : '#354039' }
+                    background: Rectangle { color: backend.colors.input; radius: 10; border.width: input.activeFocus ? 2 : 1; border.color: exercise.feedback.text ? (exercise.feedback.ok ? backend.colors.accent : backend.colors.warning) : input.activeFocus ? backend.colors.accent : backend.colors.border }
                 }
                 // Reserve feedback space: checking an answer never shifts following content.
-                Copy { width: parent.width; height: 78; text: exercise.feedback.text; color: exercise.feedback.ok ? '#a6efbd' : '#f0cc8c'; font.pixelSize: 13 }
+                Copy { width: parent.width; height: 78; text: exercise.feedback.text; color: exercise.feedback.ok ? backend.colors.accent : backend.colors.warning; font.pixelSize: 13 }
             }
         }
     }
-    Copy { objectName: 'lessonResult'; visible: page.lesson.available; width: parent.width; height: Math.max(88, implicitHeight); text: backend.feedback.message || (backend.lessonCompleted ? 'Разбор уже пройден. Можно повторить задания.' : ''); color: '#a6efbd'; font.pixelSize: 14 }
+    Copy { objectName: 'lessonResult'; visible: page.lesson.available; width: parent.width; height: Math.max(88, implicitHeight); text: backend.feedback.message || (backend.lessonCompleted ? 'Разбор уже пройден. Можно повторить задания.' : ''); color: backend.colors.accent; font.pixelSize: 14 }
     Card {
         width: parent.width
         visible: page.lesson.available
         height: visible ? practiceContent.height + 48 : 0
-        color: '#1a3022'
+        color: backend.colors.feature
         Column {
             id: practiceContent
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 24 }
             spacing: 16
-            Copy { width: parent.width; text: 'ЗАПОМНИ'; font.pixelSize: 11; color: '#a6efbd' }
+            Copy { width: parent.width; text: 'ЗАПОМНИ'; font.pixelSize: 11; color: backend.colors.accent }
             Copy { width: parent.width; text: page.lesson.remember || ''; font.pixelSize: 19 }
             Copy { width: parent.width; text: 'Напиши сам'; font.pixelSize: 22; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: page.lesson.practice || '' }
             Copy { width: parent.width; text: 'Проверь себя'; font.pixelSize: 16; font.weight: Font.DemiBold }
-            Copy { width: parent.width; text: page.lesson.criteria || ''; color: '#c0d0c5' }
-            Copy { width: parent.width; text: 'Пиши в отдельном .py-файле и запускай своим Python. Здесь проверяются короткие ответы; свой код ты проверяешь по критериям выше.'; color: '#adb9b0'; font.pixelSize: 13 }
+            Copy { width: parent.width; text: page.lesson.criteria || ''; color: backend.colors.muted }
+            Copy { width: parent.width; text: 'Пиши в отдельном .py-файле и запускай своим Python. Здесь проверяются короткие ответы; свой код ты проверяешь по критериям выше.'; color: backend.colors.muted; font.pixelSize: 13 }
             CheckBox {
                 id: practiceCheck
                 objectName: 'practiceDone'
@@ -113,10 +113,10 @@ Column {
                 indicator: Rectangle {
                     x: 0; y: (practiceCheck.height - height) / 2
                     width: 22; height: 22; radius: 6
-                    color: practiceCheck.checked ? '#a6efbd' : '#111a14'
+                    color: practiceCheck.checked ? backend.colors.accent : backend.colors.input
                     border.width: practiceCheck.activeFocus ? 2 : 1
-                    border.color: '#a6efbd'
-                    Text { anchors.centerIn: parent; text: practiceCheck.checked ? '✓' : ''; color: '#111a14'; font.pixelSize: 16 }
+                    border.color: backend.colors.accent
+                    Text { anchors.centerIn: parent; text: practiceCheck.checked ? '✓' : ''; color: backend.colors.onAccent; font.pixelSize: 16 }
                 }
                 contentItem: Copy {
                     leftPadding: 36
@@ -125,7 +125,7 @@ Column {
                 }
                 Accessible.name: 'Практика выполнена самостоятельно'
             }
-            Copy { width: parent.width; text: 'Это твоя отметка самопроверки, а не автоматическая оценка программы.'; color: '#adb9b0'; font.pixelSize: 12 }
+            Copy { width: parent.width; text: 'Это твоя отметка самопроверки, а не автоматическая оценка программы.'; color: backend.colors.muted; font.pixelSize: 12 }
         }
     }
     RowLayout {
@@ -140,5 +140,5 @@ Column {
         primary: true
         onClicked: page.shell.navigate('overview', 'Web')
     }
-    Copy { visible: page.lesson.available; width: parent.width; text: 'Enter — проверить. Прогресс сохраняется на этом компьютере.'; font.pixelSize: 12; color: '#adb9b0' }
+    Copy { visible: page.lesson.available; width: parent.width; text: 'Enter — проверить. Прогресс сохраняется на этом компьютере.'; font.pixelSize: 12; color: backend.colors.muted }
 }
