@@ -72,9 +72,9 @@ class HabitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'data.json'
             def run(*args):
-                return subprocess.run([sys.executable, '-m', 'examples.habit_tracker',
+                return subprocess.run([sys.executable, '-X', 'utf8', '-m', 'examples.habit_tracker',
                                        '--file', str(path), *args], cwd=ROOT,
-                                      capture_output=True, text=True, timeout=10)
+                                      capture_output=True, encoding='utf-8', timeout=10)
             self.assertEqual(run('add', 'Python').returncode, 0)
             key = json.loads(path.read_text())[0]['id']
             self.assertEqual(run('mark', key, '--date', '2024-01-01').returncode, 0)

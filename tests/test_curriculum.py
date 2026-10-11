@@ -64,8 +64,8 @@ class CurriculumTests(unittest.TestCase):
                           'builtins.input = lambda prompt="": next(_answers)\n')
                 script = Path(folder) / 'example.py'
                 script.write_text(prefix + lesson.code, encoding='utf-8')
-                result = subprocess.run([sys.executable, str(script)], cwd=folder,
-                                        capture_output=True, text=True, timeout=5)
+                result = subprocess.run([sys.executable, '-X', 'utf8', str(script)], cwd=folder,
+                                        capture_output=True, encoding='utf-8', timeout=5)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 if EXPECTED[key] is not None:
                     self.assertEqual(result.stdout.strip(), EXPECTED[key])
@@ -78,7 +78,7 @@ class CurriculumTests(unittest.TestCase):
     def test_game_loss_and_direction_hints(self):
         code = LESSONS['logic/6'].code
         prefix = 'answers = iter(["1", "9", "2"])\ninput = lambda prompt="": next(answers)\n'
-        result = subprocess.run([sys.executable, '-c', prefix + code],
-                                capture_output=True, text=True, timeout=5)
+        result = subprocess.run([sys.executable, '-X', 'utf8', '-c', prefix + code],
+                                capture_output=True, encoding='utf-8', timeout=5)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout.strip(), 'Больше\nМеньше\nБольше\nПопытки закончились')

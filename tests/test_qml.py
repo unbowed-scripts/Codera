@@ -1,5 +1,5 @@
 import os
-os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
+os.environ.setdefault('QT_QPA_PLATFORM', 'windows' if os.name == 'nt' else 'offscreen')
 os.environ.setdefault('QT_QUICK_BACKEND', 'software')
 import tempfile
 import unittest
@@ -147,7 +147,7 @@ class QuickTests(unittest.TestCase):
                 for item in walk(self.window.contentItem()):
                     if item.property('text') and item.property('font') is not None:
                         if item.property('truncated') is not None:
-                            self.assertFalse(item.property('truncated'))
+                            self.assertFalse(item.property('truncated'), item.property('text'))
 
     def test_practice_checkbox_and_next_section(self):
         self.navigate('lesson', 'start/6')
