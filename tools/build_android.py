@@ -4,6 +4,8 @@ See docs/ANDROID.md for the pinned toolchain and prerequisites.
 """
 import argparse
 import configparser
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -25,9 +27,14 @@ def main():
     parser.add_argument('--ndk', required=True, type=Path)
     parser.add_argument('--wheels', required=True, type=Path)
     parser.add_argument('--prepare-only', action='store_true')
+    parser.add_argument('--version', default='0.7.0-alpha.1')
+    parser.add_argument('--version-code', type=int, default=70001)
     args = parser.parse_args()
     if sys.version_info[:2] != (3, 11):
         parser.error('Use Python 3.11 with PySide6==6.8.2.1 and Buildozer==1.5.0')
+    if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.]+)?', args.version):
+        parser.error('Invalid version')
+    os.environ.setdefault('VIRTUAL_ENV', sys.prefix)
     sdk, ndk, wheels = args.sdk.resolve(), args.ndk.resolve(), args.wheels.resolve()
     for path in (sdk / 'platforms/android-34/android.jar', ndk / 'source.properties'):
         if not path.is_file():
@@ -41,12 +48,21 @@ def main():
     stage.mkdir(parents=True, exist_ok=True)
     for name in SOURCES:
         shutil.copy2(ROOT / name, stage / name)
+    entry = stage / 'main.py'
+    entry.write_text(re.sub(r"^VERSION = .*", f"VERSION = {args.version!r}", entry.read_text(), flags=re.MULTILINE))
     for folder in ('web_notes', 'web_catalog', 'web_tasks'):
         example_dest = stage / 'examples' / folder
         example_dest.mkdir(parents=True, exist_ok=True)
         for source in (ROOT / 'examples' / folder).iterdir():
             if source.is_file() and source.suffix in ('.py', '.md', '.txt'):
                 shutil.copy2(source, example_dest / source.name)
+    shutil.copy2(ROOT / 'LICENSE', stage / 'LICENSE.txt')
+    shutil.copy2(ROOT / 'packaging' / 'ANDROID_NOTICES.md', stage / 'THIRD_PARTY_NOTICES.md')
+    if (ROOT / 'build/licenses').is_dir():
+        shutil.copytree(ROOT / 'build/licenses', stage / 'licenses', dirs_exist_ok=True)
+    license_dir = stage / 'licenses'
+    license_dir.mkdir(exist_ok=True)
+    (license_dir / 'BUILD.txt').write_text('Python 3.11.5; Qt 6.8.2; PySide6/Shiboken6 6.8.2.1; Android ARM64\n')
     # Only application assets enter the APK; no local settings, venvs or build history.
     if (stage / 'qml').exists():
         shutil.rmtree(stage / 'qml')
@@ -62,15 +78,17 @@ def main():
         raise RuntimeError('Qt deployment did not generate buildozer.spec; inspect its output')
     config['app'].update({
         'title': 'PythonTech', 'package.name': 'pythontech',
-        'package.domain': 'org.pythontech', 'version': '0.6.0',
-        'source.include_exts': 'py,qml,js,png,jpg,jpeg,svg,json',
+        'package.domain': 'org.pythontech', 'version': args.version,
+        'android.numeric_version': str(args.version_code),
+        'source.include_exts': 'py,qml,js,png,jpg,jpeg,svg,json,md,txt',
         'source.exclude_dirs': '.buildozer,deployment,__pycache__',
         'requirements': 'python3==3.11.5,hostpython3==3.11.5,shiboken6,PySide6',
         'android.api': '34', 'android.minapi': '28', 'android.ndk_api': '28',
         'android.ndk': '26b', 'android.ndk_path': str(ndk),
         'android.sdk_path': str(sdk), 'android.archs': 'arm64-v8a',
         'android.permissions': 'INTERNET', 'android.debug_artifact': 'apk',
-        'orientation': 'all', 'fullscreen': '0',
+        'android.no-byte-compile-python': '1',
+        'orientation': 'portrait,landscape', 'fullscreen': '0',
         'p4a.commit': P4A_COMMIT,
     })
     destination = ROOT / 'dist/android'
