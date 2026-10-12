@@ -46,9 +46,9 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 24
             Item { width: 1; height: 8 }
-            Copy { width: parent.width; text: 'ОТ ПЕРВОЙ СТРОКИ — К СВОЕМУ ПРОЕКТУ'; color: backend.colors.accent; font.pixelSize: 11 }
-            Copy { width: parent.width; text: 'Выбери свой язык'; font.pixelSize: landing.width < 700 ? 34 : 44; font.weight: Font.DemiBold }
-            Copy { width: parent.width; text: 'Начни с Python или посмотри, какие курсы появятся дальше. Сначала — широко используемые языки, затем расширим выбор.'; font.pixelSize: 17; color: backend.colors.muted }
+            Copy { width: parent.width; text: 'УЧИСЬ ПИСАТЬ СВОИ ПРОГРАММЫ'; color: backend.colors.accent; font.pixelSize: 11 }
+            Copy { width: parent.width; text: 'Выбери язык программирования'; font.pixelSize: landing.width < 700 ? 34 : 44; font.weight: Font.DemiBold }
+            Copy { width: parent.width; text: 'Изучай Python или посмотри программы будущих курсов.'; font.pixelSize: 17; color: backend.colors.muted }
             GridLayout {
                 width: parent.width
                 columns: landing.width < 600 ? 1 : 3
@@ -111,9 +111,9 @@ Item {
                     id: future
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
                     spacing: 12
-                    Copy { width: parent.width; text: 'Дальше — больше направлений'; font.pixelSize: 20; font.weight: Font.DemiBold }
+                    Copy { width: parent.width; text: 'Другие направления'; font.pixelSize: 20; font.weight: Font.DemiBold }
                     Copy { width: parent.width; text: backend.futureLanguages.join(' · '); color: backend.colors.accent; font.pixelSize: 17 }
-                    Copy { width: parent.width; text: 'Следующий этап после основных курсов. Будем добавлять языки для мобильной разработки, системных задач и других специализаций.'; color: backend.colors.muted }
+                    Copy { width: parent.width; text: 'В планах — курсы для мобильных приложений, системных программ и других задач.'; color: backend.colors.muted }
                 }
             }
         }

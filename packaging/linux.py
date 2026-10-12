@@ -40,7 +40,7 @@ def main():
         'libxcb-shape0, libxcb-xfixes0, libxcb-sync1, libxcb-xkb1, libdbus-1-3\n'
         'Homepage: https://github.com/unbowed-scripts/PythonTech\n'
         'Description: Offline Python learning desktop app\n'
-        ' 54 Core and 24 Web lessons, exercises, projects and four color themes.\n', encoding='utf-8')
+        ' 54 Core and 42 Web lessons, exercises, projects and four color themes.\n', encoding='utf-8')
     subprocess.run(['dpkg-deb', '--root-owner-group', '--build', str(stage),
                     str(output / f'PythonTech-{VERSION}-linux-amd64.deb')], check=True)
     with tarfile.open(output / f'PythonTech-{VERSION}-linux-x64.tar.gz', 'w:gz') as archive:

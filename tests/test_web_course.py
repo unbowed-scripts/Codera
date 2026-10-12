@@ -10,6 +10,8 @@ from backend import Backend
 from curriculum import LESSONS, TRACKS
 from section_content import PROJECTS, questions
 from web_content import WEB_CONTENT
+from examples.web_catalog.test_app import CatalogTests
+from examples.web_tasks.test_app import TaskTests
 from examples.web_notes.test_app import NotesTests  # Include the runnable project's real tests.
 
 
@@ -32,9 +34,9 @@ class WebCourseTests(unittest.TestCase):
             b.section_projects = b.section_tests.copy()
             self.assertTrue(b.progress['webReady'])
             b.open('overview', 'Web')
-            self.assertEqual(b.progress['ready'], 24)
+            self.assertEqual(b.progress['ready'], 42)
             self.assertEqual(b.progress['done'], 0)
-            self.assertEqual(b.progress['checkpointTotal'], 4)
+            self.assertEqual(b.progress['checkpointTotal'], 7)
             for section in TRACKS['Web']:
                 b.open('checkpoint', section.id)
                 self.assertFalse(b.assessment['unlocked'])
@@ -57,11 +59,32 @@ class WebCourseTests(unittest.TestCase):
                 self.assertIn('criteria', b.tutor_context('project'))
             self.assertEqual(b.nextSection(), '')
             self.assertTrue(b.page['isTrackFinal'])
-            self.assertEqual(b.progress['done'], 24)
+            self.assertEqual(b.progress['done'], 42)
             restored = Backend(settings)
             self.assertTrue(restored.open('overview', 'Web'))
-            self.assertEqual(restored.progress['sectionProjects'], 4)
-            self.assertEqual(restored.progress['readyDone'], 24)
+            self.assertEqual(restored.progress['sectionProjects'], 7)
+            self.assertEqual(restored.progress['readyDone'], 42)
+
+    def test_existing_web_progress_continues_into_new_sections(self):
+        with tempfile.TemporaryDirectory() as folder:
+            settings = QSettings(str(Path(folder) / 'state.ini'), QSettings.IniFormat)
+            old_sections = ('web-basics', 'web-app', 'web-data', 'web-quality')
+            keys = [f'{section}/{i}' for section in old_sections for i in range(1, 7)]
+            settings.setValue('completed', keys)
+            settings.setValue('practiced', keys)
+            settings.setValue('sectionTests', list(old_sections))
+            settings.setValue('sectionProjects', list(old_sections))
+            b = Backend(settings)
+            b.open('overview', 'Web')
+            self.assertEqual(b.progress['done'], 24)
+            self.assertFalse(b.progress['repeat'])
+            self.assertEqual(b.progress['nextKey'], 'web-models/1')
+            b.open('checkpoint', 'web-quality')
+            self.assertTrue(b.assessment['projectDone'])
+            self.assertFalse(b.page['isTrackFinal'])
+            self.assertEqual(b.nextSection(), 'web-models')
+            b.open('checkpoint', 'web-delivery')
+            self.assertTrue(b.page['isTrackFinal'])
 
     def test_theory_markup_and_complete_projects(self):
         for key, record in WEB_CONTENT.items():
@@ -80,7 +103,7 @@ class WebCourseTests(unittest.TestCase):
             for code in project['hintCodes']:
                 ast.parse(code)
             # Run non-server capstones; the final server has end-to-end tests above.
-            if section.id != 'web-quality':
+            if section.id not in {'web-quality', 'web-models', 'web-users', 'web-delivery'}:
                 with tempfile.TemporaryDirectory() as folder:
                     script = Path(folder) / 'project.py'
                     script.write_text(project['code'], encoding='utf-8')

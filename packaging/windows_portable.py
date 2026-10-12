@@ -39,9 +39,16 @@ def main():
     # Embedded Python searches only this application directory and its standard library.
     (app / 'python312._pth').write_text('python312.zip\n.\nimport site\n', encoding='utf-8')
     for name in ('main.py', 'backend.py', 'curriculum.py', 'core_content.py',
-                 'section_content.py', 'language_catalog.py', 'themes.py'):
+                 'section_content.py', 'language_catalog.py', 'themes.py', 'ai_tutor.py',
+                 'practice_hints.py', 'web_content.py', 'web_extended_content.py', 'web_projects.py'):
         shutil.copy2(ROOT / name, app / name)
     shutil.copytree(ROOT / 'qml', app / 'qml')
+    for folder in ('web_notes', 'web_catalog', 'web_tasks'):
+        destination = app / 'examples' / folder
+        destination.mkdir(parents=True, exist_ok=True)
+        for source in (ROOT / 'examples' / folder).iterdir():
+            if source.is_file() and source.suffix in ('.py', '.md', '.txt'):
+                shutil.copy2(source, destination / source.name)
     for name in ('LICENSE', 'README.md'):
         shutil.copy2(ROOT / name, stage / name)
     shutil.copy2(ROOT / 'packaging/THIRD_PARTY_NOTICES.md', stage)

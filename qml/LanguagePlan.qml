@@ -45,10 +45,10 @@ Popup {
                 id: content
                 width: parent.width - 14; spacing: 20
                 Copy { width: parent.width; text: plan.language.goal; font.pixelSize: 16 }
-                Copy { width: parent.width; visible: !plan.language.available; text: 'Уроки пока не опубликованы. Здесь можно посмотреть план: темы и итоговый проект. Дату запуска объявим, когда курс будет готов.'; color: backend.colors.muted }
-                Copy { width: parent.width; text: plan.language.available ? '9 разделов · 54 урока' : '6 разделов · по 6 уровней в каждом'; color: backend.colors.accent; font.weight: Font.DemiBold }
+                Copy { width: parent.width; visible: !plan.language.available; text: 'Уроки ещё готовятся. Ниже — темы и итоговый проект. Дата запуска пока не назначена.'; color: backend.colors.muted }
+                Copy { width: parent.width; text: plan.language.available ? 'Core: 54 урока · Web: 42 урока' : '6 разделов · по 6 уроков'; color: backend.colors.accent; font.weight: Font.DemiBold }
                 Copy { width: parent.width; text: 'Как будем учиться'; font.pixelSize: 20; font.weight: Font.DemiBold }
-                Copy { width: parent.width; text: 'Понятная теория → пример с разбором → практика с подсказками. После каждого раздела — тест, разбор кода и свой мини-проект.'; color: backend.colors.muted }
+                Copy { width: parent.width; text: 'В уроке: теория, пример и практика. После раздела: тест и мини-проект с подсказками.'; color: backend.colors.muted }
                 Repeater {
                     model: plan.language.modules
                     Card {

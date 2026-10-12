@@ -36,7 +36,7 @@ Column {
         visible: panel.expanded
         width: parent.width
         spacing: 12
-        Copy { width: parent.width; text: backend.tutor.connected ? 'ИИ учитывает этот вопрос или практику, условие и твой текущий ответ.' : 'Подключи свою модель в настройках → ИИ-помощник.'; color: backend.colors.muted }
+        Copy { width: parent.width; text: backend.tutor.connected ? 'ИИ получит задание и твой текущий ответ. Добавь код или уточни вопрос.' : 'Подключи свою модель в настройках → ИИ-помощник.'; color: backend.colors.muted }
         Copy { width: parent.width; text: 'Твой код (необязательно)'; font.weight: Font.DemiBold }
         TextArea {
             id: code
@@ -62,7 +62,7 @@ Column {
             placeholderText: 'Твой вопрос'
             onTextEdited: backend.saveTutorDraft(panel.target, code.text, text)
         }
-        Copy { width: parent.width; text: 'По кнопке отправятся условие, текущий ответ, вставленный код и вопрос выбранному провайдеру. Файлы с компьютера автоматически не читаются.'; font.pixelSize: 12; color: backend.colors.muted }
+        Copy { width: parent.width; text: 'По кнопке «Получить подсказку» выбранный провайдер получит задание, пример, твой ответ, вставленный код и вопрос. ИИ не читает файлы с компьютера.'; font.pixelSize: 12; color: backend.colors.muted }
         Flow {
             width: parent.width
             spacing: 8
@@ -87,6 +87,6 @@ Column {
                 CodeHint { visible: index % 2 === 1; code: modelData.replace(/^python\s*\n/, '').trim() }
             }
         }
-        Copy { visible: panel.result.text.length > 0; width: parent.width; text: 'ИИ может ошибаться. Запусти код самостоятельно и сверься с критериями.'; font.pixelSize: 12; color: backend.colors.muted }
+        Copy { visible: panel.result.text.length > 0; width: parent.width; text: 'Проверь совет ИИ: запусти код и сравни результат с критериями.'; font.pixelSize: 12; color: backend.colors.muted }
     }
 }

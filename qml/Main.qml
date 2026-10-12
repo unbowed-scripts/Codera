@@ -5,7 +5,8 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
     objectName: 'window'
-    width: 1380; height: 940
+    width: Math.min(1380, Screen.desktopAvailableWidth - 32)
+    height: Math.min(940, Screen.desktopAvailableHeight - 64)
     minimumWidth: 320; minimumHeight: 320
     visible: true
     color: backend.colors.background
@@ -108,10 +109,10 @@ ApplicationWindow {
             id: stage
             anchors { top: parent.top; left: parent.left; right: parent.right }
             height: 48; spacing: 8
-            Copy { text: 'Учебное пространство'; font.pixelSize: 12; color: backend.colors.muted; visible: !window.compact }
+            Copy { text: 'Изучение программирования'; font.pixelSize: 12; color: backend.colors.muted; visible: !window.compact }
             AppButton { objectName: 'topicsToggle'; visible: window.compact; text: window.drawerOpen ? 'Закрыть темы' : '☰  Темы'; onClicked: window.drawerOpen = !window.drawerOpen }
             Item { Layout.fillWidth: true }
-            AppButton { text: 'Джуниор'; selected: true }
+            AppButton { text: 'Основы'; selected: true }
             AppButton { text: window.compact ? 'Средний' : 'Средний · скоро'; enabled: false; visible: !window.phone }
             AppButton { text: window.compact ? 'Высокий' : 'Высокий · скоро'; enabled: false; visible: !window.phone }
         }

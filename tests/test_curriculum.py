@@ -45,7 +45,7 @@ class CurriculumTests(unittest.TestCase):
         self.assertEqual(len(routes), 54)
         self.assertEqual(len(routes), len(set(routes)))
         web_routes = [f'{s.id}/{i}' for s in TRACKS['Web'] for i in range(1, len(s.levels) + 1)]
-        self.assertEqual(len(web_routes), 24)
+        self.assertEqual(len(web_routes), 42)
         self.assertEqual(set(routes + web_routes), set(LESSONS))
         self.assertEqual(set(EXPECTED), set(LESSONS))
         for key, lesson in LESSONS.items():

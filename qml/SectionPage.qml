@@ -37,8 +37,8 @@ Column {
             id: checkpointContent
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
             spacing: 14
-            Copy { width: parent.width; text: 'После ' + (backend.page.levelCount || backend.page.count) + ' уровней'; font.pixelSize: 20; font.weight: Font.DemiBold }
-            Copy { width: parent.width; text: backend.page.testPassed && backend.page.projectDone ? 'Тест пройден, мини-проект выполнен. Можно повторить.' : 'Итоговый тест, разбор кода и свой мини-проект с подсказками и готовым примером.' }
+            Copy { width: parent.width; text: 'После ' + (backend.page.levelCount || backend.page.count) + ' уроков'; font.pixelSize: 20; font.weight: Font.DemiBold }
+            Copy { width: parent.width; text: backend.page.testPassed && backend.page.projectDone ? 'Тест пройден, мини-проект выполнен. Можно повторить.' : 'Пройди итоговый тест и создай мини-проект. В помощь — подсказки и пример с разбором.' }
             Copy { width: parent.width; text: 'Уроки: ' + (backend.page.levelsDone || 0) + ' / ' + (backend.page.levelCount || backend.page.count) + '. Тест: ' + (backend.page.testPassed ? 'пройден' : 'впереди') + '. Проект: ' + (backend.page.projectDone ? 'выполнен' : 'впереди') + '.'; color: backend.colors.muted }
             AppButton { objectName: 'openCheckpoint'; width: Math.min(implicitWidth, parent.width); text: backend.page.unlocked ? 'Тест и мини-проект  →' : 'Что будет после раздела  →'; onClicked: page.shell.navigate('checkpoint', backend.page.key) }
         }

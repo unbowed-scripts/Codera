@@ -52,7 +52,7 @@ def main():
                     for item in walk(window.contentItem()):
                         if item.isVisible() and item.property('truncated') is not None:
                             assert not item.property('truncated'), (width, key, item.property('text'))
-                    if key in ('web-basics/6', 'web-app/1', 'web-data/5', 'web-quality/6'):
+                    if key in ('web-basics/6', 'web-app/1', 'web-data/5', 'web-quality/6', 'web-models/5', 'web-users/4', 'web-delivery/6'):
                         window.grabWindow().save(str(output / f'{width}-{key.replace("/", "-")}.png'))
                 backend.completed.update(f'{section.id}/{i}' for i in range(1, 7))
                 backend.section_tests.add(section.id)
@@ -80,7 +80,7 @@ def main():
         QTest.qWait(20)
     qInstallMessageHandler(old)
     assert not messages, '\n'.join(messages)
-    print('24 Web lessons and 4 capstones checked at 1380 and 360 px:', output)
+    print(f'{sum(len(s.levels) for s in TRACKS["Web"])} Web lessons and {len(TRACKS["Web"])} capstones checked at 1380 and 360 px:', output)
 
 
 if __name__ == '__main__':

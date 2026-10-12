@@ -6,16 +6,16 @@ a = Analysis(
     [str(root / 'main.py')],
     pathex=[str(root)],
     datas=[(str(root / 'qml'), 'qml'),
-           (str(root / 'examples' / 'web_notes' / 'app.py'), 'examples/web_notes'),
-           (str(root / 'examples' / 'web_notes' / 'README.md'), 'examples/web_notes'),
-           (str(root / 'examples' / 'web_notes' / 'requirements.txt'), 'examples/web_notes'),
-           (str(root / 'examples' / 'web_notes' / 'test_app.py'), 'examples/web_notes'),
            (str(root / 'LICENSE'), '.'),
            (str(root / 'README.md'), '.'),
            (str(root / 'docs' / 'CORE_GUIDE.md'), 'docs'),
            (str(root / 'docs' / 'WEB_GUIDE.md'), 'docs'),
            (str(root / 'packaging' / 'THIRD_PARTY_NOTICES.md'), '.'),
            (str(root / 'build' / 'licenses'), 'licenses')]
+          + [(str(path), f'examples/{name}')
+             for name in ('web_notes', 'web_catalog', 'web_tasks')
+             for path in (root / 'examples' / name).iterdir()
+             if path.is_file() and path.suffix in ('.py', '.md', '.txt')]
           + [(str(path), 'examples/habit_tracker')
              for path in (root / 'examples' / 'habit_tracker').glob('*.py')],
     hiddenimports=['PySide6.QtQuick', 'PySide6.QtQuickControls2'],

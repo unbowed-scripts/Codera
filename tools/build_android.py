@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 P4A_COMMIT = 'b92522fab879dbfc0028966ca3c59ef46ab7767d'
 SOURCES = ('main.py', 'backend.py', 'curriculum.py', 'core_content.py',
-           'section_content.py', 'language_catalog.py', 'themes.py', 'ai_tutor.py', 'practice_hints.py', 'web_content.py', 'web_projects.py')
+           'section_content.py', 'language_catalog.py', 'themes.py', 'ai_tutor.py', 'practice_hints.py', 'web_content.py', 'web_extended_content.py', 'web_projects.py')
 
 
 def run(*args, cwd):
@@ -41,11 +41,12 @@ def main():
     stage.mkdir(parents=True, exist_ok=True)
     for name in SOURCES:
         shutil.copy2(ROOT / name, stage / name)
-    example_dest = stage / 'examples' / 'web_notes'
-    example_dest.mkdir(parents=True, exist_ok=True)
-    for source in (ROOT / 'examples' / 'web_notes').iterdir():
-        if source.is_file() and source.suffix in ('.py', '.md', '.txt'):
-            shutil.copy2(source, example_dest / source.name)
+    for folder in ('web_notes', 'web_catalog', 'web_tasks'):
+        example_dest = stage / 'examples' / folder
+        example_dest.mkdir(parents=True, exist_ok=True)
+        for source in (ROOT / 'examples' / folder).iterdir():
+            if source.is_file() and source.suffix in ('.py', '.md', '.txt'):
+                shutil.copy2(source, example_dest / source.name)
     # Only application assets enter the APK; no local settings, venvs or build history.
     if (stage / 'qml').exists():
         shutil.rmtree(stage / 'qml')
@@ -61,7 +62,7 @@ def main():
         raise RuntimeError('Qt deployment did not generate buildozer.spec; inspect its output')
     config['app'].update({
         'title': 'PythonTech', 'package.name': 'pythontech',
-        'package.domain': 'org.pythontech', 'version': '0.5.0',
+        'package.domain': 'org.pythontech', 'version': '0.6.0',
         'source.include_exts': 'py,qml,js,png,jpg,jpeg,svg,json',
         'source.exclude_dirs': '.buildozer,deployment,__pycache__',
         'requirements': 'python3==3.11.5,hostpython3==3.11.5,shiboken6,PySide6',

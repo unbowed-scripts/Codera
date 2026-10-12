@@ -43,7 +43,7 @@ Popup {
                 Layout.fillWidth: true
                 spacing: 6
                 Copy { text: 'Настройки'; font.pixelSize: 28; font.weight: Font.DemiBold }
-                Copy { Layout.fillWidth: true; text: 'Язык, оформление и информация о PythonTech.'; color: backend.colors.muted; font.pixelSize: 14 }
+                Copy { Layout.fillWidth: true; text: 'Язык, тема, анимация и ИИ-помощник.'; color: backend.colors.muted; font.pixelSize: 14 }
             }
             AppButton { id: closeButton; objectName: 'closeSettings'; text: 'Закрыть'; quiet: true; onClicked: settings.close() }
         }
@@ -63,7 +63,7 @@ Popup {
                 width: scroll.width - 14
                 spacing: 20
                 Copy { text: 'Язык интерфейса'; font.pixelSize: 20; font.weight: Font.DemiBold }
-                Copy { width: parent.width; text: 'Сейчас доступен русский. Английский и украинский появятся в будущих обновлениях.'; color: backend.colors.muted; font.pixelSize: 14 }
+                Copy { width: parent.width; text: 'Русский доступен. Английский и украинский готовятся.'; color: backend.colors.muted; font.pixelSize: 14 }
                 Column {
                     width: parent.width
                     spacing: 8
@@ -99,7 +99,7 @@ Popup {
                 }
                 Rectangle { width: parent.width; height: 1; color: backend.colors.border }
                 Copy { text: 'Тема интерфейса'; font.pixelSize: 20; font.weight: Font.DemiBold }
-                Copy { width: parent.width; text: 'Нажми на скриншот. Тема применится сразу и сохранится для следующего запуска.'; color: backend.colors.muted; font.pixelSize: 14 }
+                Copy { width: parent.width; text: 'Выбери тему по скриншоту. Она применится сразу и сохранится.'; color: backend.colors.muted; font.pixelSize: 14 }
                 Flickable {
                     id: themeStrip
                     objectName: 'themeStrip'
@@ -184,7 +184,7 @@ Popup {
                     }
                     contentItem: Copy { leftPadding: 38; text: 'Меньше анимации'; verticalAlignment: Text.AlignVCenter }
                 }
-                Copy { width: parent.width; text: 'Отключает анимацию переходов и фона, чтобы меньше отвлекаться.'; color: backend.colors.muted; font.pixelSize: 14 }
+                Copy { width: parent.width; text: 'Отключает движение фона и анимацию переходов.'; color: backend.colors.muted; font.pixelSize: 14 }
                 Rectangle { width: parent.width; height: 1; color: backend.colors.border }
                 TutorSettings { reveal: settings.reveal }
                 Rectangle { width: parent.width; height: 1; color: backend.colors.border }

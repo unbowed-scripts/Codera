@@ -7,7 +7,7 @@ Column {
     width: parent.width
     spacing: 12
     Copy { width: parent.width; text: 'ИИ-помощник'; font.pixelSize: 20; font.weight: Font.DemiBold }
-    Copy { width: parent.width; text: 'Подключи модель с совместимым Chat Completions API. Адрес, название модели и ключ возьми у своего провайдера. Для локального сервера ключ может быть пустым.'; color: backend.colors.muted }
+    Copy { width: parent.width; text: 'Подключи свою ИИ-модель. Нужен Chat Completions API — совместимый способ обмена сообщениями. Адрес, название модели и ключ возьми у провайдера. Для локального сервера ключ может не требоваться.'; color: backend.colors.muted }
     Copy { width: parent.width; text: 'Адрес API'; font.weight: Font.DemiBold }
     TutorField {
         id: url
@@ -35,7 +35,7 @@ Column {
         placeholderText: 'API-ключ'
         onActiveFocusChanged: if (activeFocus) settings.reveal(key)
     }
-    Copy { width: parent.width; text: 'Сохраняются только адрес и название модели. Подключение отправит короткий проверочный запрос; провайдер может учитывать его в оплате. Учебные данные отправляются только по кнопке «Получить подсказку».'; color: backend.colors.muted; font.pixelSize: 12 }
+    Copy { width: parent.width; text: 'Адрес и название модели сохраняются. Ключ хранится до закрытия приложения. Проверка подключения отправляет короткий запрос, который может быть платным. Задание отправляется по кнопке «Получить подсказку».'; color: backend.colors.muted; font.pixelSize: 12 }
     Flow {
         width: parent.width
         spacing: 8

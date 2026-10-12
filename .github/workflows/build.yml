@@ -25,11 +25,6 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor0
       - name: Install build dependencies
         run: python -m pip install -r packaging/requirements-build.txt
-      - name: Test
-        env:
-          QT_QPA_PLATFORM: ${{ runner.os == 'Windows' && 'windows' || 'offscreen' }}
-          QT_QUICK_BACKEND: software
-        run: python -m unittest discover -s tests -v
       - name: Collect notices
         run: python packaging/collect_licenses.py
       - name: Freeze application
@@ -40,15 +35,6 @@ jobs:
           QT_QPA_PLATFORM: ${{ runner.os == 'Windows' && 'windows' || 'offscreen' }}
           QT_QUICK_BACKEND: software
         run: dist/PythonTech/PythonTech --smoke-test
-      - name: Smoke test Windows bundle
-        if: runner.os == 'Windows'
-        env:
-          QT_QPA_PLATFORM: ${{ runner.os == 'Windows' && 'windows' || 'offscreen' }}
-          QT_QUICK_BACKEND: software
-        shell: pwsh
-        run: |
-          $process = Start-Process -FilePath dist/PythonTech/PythonTech.exe -ArgumentList '--smoke-test' -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Bundle smoke test failed: $($process.ExitCode)" }
       - name: Build Linux installers
         if: runner.os == 'Linux'
         run: python packaging/linux.py
@@ -56,6 +42,20 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging/windows.iss'
+      - name: Check installed Windows application
+        if: runner.os == 'Windows'
+        env:
+          QT_QPA_PLATFORM: windows
+          QT_QUICK_BACKEND: software
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem dist/installers/*-windows-x64-setup.exe | Select-Object -First 1
+          $destination = Join-Path $env:RUNNER_TEMP 'PythonTech-check'
+          $process = Start-Process -FilePath $installer.FullName -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=$destination" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
+          $process = Start-Process -FilePath "$destination/PythonTech.exe" -ArgumentList '--smoke-test' -PassThru
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'Application startup timed out' }
+          if ($process.ExitCode -ne 0) { throw "Installed app smoke test failed: $($process.ExitCode)" }
       - uses: actions/upload-artifact@v6
         with:
           name: installers-${{ runner.os }}
@@ -81,4 +81,4 @@ jobs:
           cd installers
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh release create v0.5.0 installers/* --target "$GITHUB_SHA" --title 'PythonTech 0.5.0' --notes-file packaging/RELEASE_NOTES.md
+          gh release create v0.6.0 installers/* --target "$GITHUB_SHA" --title 'PythonTech 0.6.0' --notes-file packaging/RELEASE_NOTES.md

@@ -18,7 +18,7 @@ Column {
     Copy {
         objectName: 'checkpointStatus'
         width: parent.width
-        text: !page.state.unlocked ? 'Пройдено ' + page.state.levelsDone + ' / ' + (page.checkpoint.levelCount || 6) + ' уровней. Заверши разбор заданий во всех уроках раздела, чтобы открыть тест и проект.' : page.state.testPassed && page.state.projectDone ? 'Раздел завершён: тест пройден, свой проект отмечен как выполненный.' : page.state.testPassed ? 'Тест уже пройден. Осталось написать и проверить свой проект.' : 'Сначала проверь знания, затем собери свою программу. Ответы можно исправлять, а подсказки открывать по мере необходимости.'
+        text: !page.state.unlocked ? 'Пройдено ' + page.state.levelsDone + ' / ' + (page.checkpoint.levelCount || 6) + ' уроков. Ответь на задания во всех уроках раздела, чтобы открыть тест и проект.' : page.state.testPassed && page.state.projectDone ? 'Раздел завершён: тест пройден, свой проект отмечен как выполненный.' : page.state.testPassed ? 'Тест уже пройден. Осталось написать и проверить свой проект.' : 'Пройди тест, затем напиши свой проект. Ошибки можно исправлять без ограничения попыток.'
         color: backend.colors.muted
     }
     Column {
@@ -26,7 +26,7 @@ Column {
         width: parent.width
         spacing: 20
         Copy { width: parent.width; text: '01 / Итоговый тест'; font.pixelSize: 23; font.weight: Font.DemiBold }
-        Copy { width: parent.width; text: 'Шесть коротких вопросов — по одному на каждый уровень. Затем два фрагмента кода: выбери, что означают их части. Для прохождения нужны 8 верных ответов.'; color: backend.colors.muted }
+        Copy { width: parent.width; text: 'Ответь на шесть вопросов по урокам и два вопроса по коду. Для прохождения нужны восемь верных ответов.'; color: backend.colors.muted }
         Repeater {
             model: page.state.unlocked ? page.checkpoint.questions : []
             Card {
@@ -89,7 +89,7 @@ Column {
         AppButton { objectName: 'checkSectionTest'; text: 'Проверить тест'; primary: true; onClicked: backend.checkTest() }
         Copy { objectName: 'sectionTestResult'; width: parent.width; text: page.state.message || ''; visible: text.length > 0; color: backend.colors.accent }
         Copy { width: parent.width; text: '02 / Мини-проект'; font.pixelSize: 23; font.weight: Font.DemiBold }
-        Copy { width: parent.width; visible: !page.state.testPassed; text: 'Мини-проект откроется после успешного теста. Разбор каждого ответа поможет подготовиться.'; color: backend.colors.muted }
+        Copy { width: parent.width; visible: !page.state.testPassed; text: 'Пройди тест, чтобы открыть мини-проект. При ошибке прочитай подсказку и попробуй снова.'; color: backend.colors.muted }
         Column {
             width: parent.width
             visible: page.state.testPassed
@@ -97,7 +97,7 @@ Column {
             Copy { width: parent.width; text: page.checkpoint.project.title; font.pixelSize: 22; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: 'Твоя задача'; font.pixelSize: 18; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: page.checkpoint.project.task }
-            Copy { width: parent.width; text: 'Пиши в отдельном .py-файле и запускай своим Python. Сначала попробуй сам. Если застрянешь, открой подсказку или готовый пример ниже.'; color: backend.colors.muted }
+            Copy { width: parent.width; text: 'Напиши код в отдельном .py-файле и запусти через Python. Если нужна помощь, открой подсказку или пример ниже.'; color: backend.colors.muted }
             AppButton {
                 objectName: 'projectHint'
                 text: page.hintCount === 0 ? 'Показать подсказку' : 'Следующая подсказка'
@@ -121,7 +121,7 @@ Column {
                 width: parent.width
                 spacing: 16
                 Copy { width: parent.width; text: 'Учебный пример'; font.pixelSize: 18; font.weight: Font.DemiBold }
-                Copy { width: parent.width; text: 'Сохрани пример в отдельный файл, запусти и сравни результат с разбором. Затем закрой пример и создай свою версию по заданию выше.'; color: backend.colors.muted }
+                Copy { width: parent.width; text: 'Сохрани и запусти пример. Сравни результат с разбором. Затем закрой пример и выполни задание самостоятельно.'; color: backend.colors.muted }
                 AppButton { objectName: 'copyProject'; text: 'Копировать пример'; onClicked: { backend.copyProject(); text = 'Скопировано' } }
                 Card {
                     width: parent.width; height: exampleCode.height + 32; color: backend.colors.code
@@ -147,9 +147,9 @@ Column {
                     border.width: done.activeFocus ? 2 : 1
                     Text { anchors.centerIn: parent; text: done.checked ? '✓' : ''; color: backend.colors.onAccent }
                 }
-                contentItem: Copy { leftPadding: 38; text: 'Свой проект написал, запустил и проверил по всем пунктам'; verticalAlignment: Text.AlignVCenter }
+                contentItem: Copy { leftPadding: 38; text: 'Написал и проверил проект по всем пунктам'; verticalAlignment: Text.AlignVCenter }
             }
-            Copy { width: parent.width; text: 'Это твоя отметка самопроверки. Приложение проверяет ответы теста, но не запускает и не оценивает твой .py-файл.'; color: backend.colors.muted; font.pixelSize: 13 }
+            Copy { width: parent.width; text: 'Отметь выполнение после самопроверки. Приложение проверяет тест, но не запускает твой .py-файл.'; color: backend.colors.muted; font.pixelSize: 13 }
             AppButton {
                 objectName: 'nextSection'
                 text: page.checkpoint.isTrackFinal ? 'Завершить ' + (page.checkpoint.track === 'Web' ? 'Python Web' : page.checkpoint.track) + '  →' : 'К следующему разделу  →'

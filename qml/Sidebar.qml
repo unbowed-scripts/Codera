@@ -22,7 +22,7 @@ Card {
     ColumnLayout {
         anchors { fill: parent; margins: 16 }
         spacing: 12
-        Copy { text: 'ТВОЁ НАПРАВЛЕНИЕ'; font.pixelSize: 11; color: backend.colors.muted; Layout.fillWidth: true }
+        Copy { text: 'ТВОЙ КУРС'; font.pixelSize: 11; color: backend.colors.muted; Layout.fillWidth: true }
         AppComboBox {
             id: tracks
             objectName: 'trackSelector'
@@ -33,7 +33,7 @@ Card {
             onActivated: nav.shell.navigate('overview', currentText)
             Accessible.name: 'Направление обучения'
         }
-        AppButton { Layout.fillWidth: true; text: '▦  Обзор направления'; selected: backend.kind === 'overview'; onClicked: nav.shell.navigate('overview', backend.track) }
+        AppButton { Layout.fillWidth: true; text: '▦  Обзор курса'; selected: backend.kind === 'overview'; onClicked: nav.shell.navigate('overview', backend.track) }
         TextField {
             id: search
             Layout.fillWidth: true
@@ -69,7 +69,7 @@ Card {
                     }
                 }
             }
-            Copy { visible: list.count === 0; width: parent.width; text: 'Таких тем нет'; color: backend.colors.muted; font.pixelSize: 13 }
+            Copy { visible: list.count === 0; width: parent.width; text: 'Темы не найдены. Измени запрос.'; color: backend.colors.muted; font.pixelSize: 13 }
         }
         Copy { Layout.fillWidth: true; text: 'Пройдено ' + backend.progress.done + ' из ' + backend.progress.total + ' · доступно ' + backend.progress.ready; font.pixelSize: 12; color: backend.colors.muted }
         Rectangle {
