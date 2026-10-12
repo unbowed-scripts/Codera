@@ -81,6 +81,7 @@ Column {
                     onAccepted: backend.check()
                     background: Rectangle { color: backend.colors.input; radius: 10; border.width: input.activeFocus ? 2 : 1; border.color: exercise.feedback.text ? (exercise.feedback.ok ? backend.colors.accent : backend.colors.warning) : input.activeFocus ? backend.colors.accent : backend.colors.border }
                 }
+                TutorPanel { target: 'exercise:' + exercise.index }
                 // Reserve feedback space: checking an answer never shifts following content.
                 Copy { width: parent.width; height: 78; text: exercise.feedback.text; color: exercise.feedback.ok ? backend.colors.accent : backend.colors.warning; font.pixelSize: 13 }
             }
@@ -102,6 +103,8 @@ Column {
             Copy { width: parent.width; text: page.lesson.practice || '' }
             AppButton { objectName: 'lessonPracticeHint'; text: page.practiceHintOpen ? 'Скрыть подсказку' : 'Подсказка к практике'; onClicked: page.practiceHintOpen = !page.practiceHintOpen }
             Copy { width: parent.width; visible: page.practiceHintOpen; text: '1. Опирайся на правило: ' + (page.lesson.remember || '') + '\n\n2. Вернись к примеру выше: ' + (page.lesson.explanation || '') + '\n\n3. Измени данные и действия под свою задачу. Проверь результат по пунктам ниже.'; color: backend.colors.muted }
+            CodeHint { objectName: 'practiceHintCode'; visible: page.practiceHintOpen; code: page.lesson.code || '' }
+            TutorPanel { target: 'practice' }
             Copy { width: parent.width; text: 'Проверь себя'; font.pixelSize: 16; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: page.lesson.criteria || ''; color: backend.colors.muted }
             Copy { width: parent.width; text: 'Пиши в отдельном .py-файле и запускай своим Python. Здесь проверяются короткие ответы; свой код ты проверяешь по критериям выше.'; color: backend.colors.muted; font.pixelSize: 13 }
@@ -140,7 +143,7 @@ Column {
     }
     AppButton {
         visible: page.lesson.isCoreFinal === true
-        text: 'Посмотреть маршрут Web  →'
+        text: 'Перейти к Python Web  →'
         primary: true
         onClicked: page.shell.navigate('overview', 'Web')
     }

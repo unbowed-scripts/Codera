@@ -40,6 +40,7 @@ class CheckpointSmoke(unittest.TestCase):
                 return next(item for item in walk(window.contentItem()) if item.objectName() == name)
 
             def click(name):
+                QTest.qWait(20)  # Let answer feedback and nested columns finish layout.
                 item = find(name)
                 view = find('courseViewport')
                 top = item.mapToItem(view.property('contentItem'), 0, 0).y()
@@ -95,7 +96,7 @@ class CheckpointSmoke(unittest.TestCase):
                 # A compact visual check without a full regression run.
                 output = Path(os.environ.get('PYTHONTECH_SMOKE_OUTPUT', folder))
                 output.mkdir(parents=True, exist_ok=True)
-                for width in (1380, 600):
+                for width in (1380, 360):
                     window.setWidth(width)
                     window.setHeight(940 if width == 1380 else 700)
                     QTest.qWait(40)
@@ -104,6 +105,10 @@ class CheckpointSmoke(unittest.TestCase):
                     for item in walk(window.contentItem()):
                         if item.isVisible() and item.property('truncated') is not None:
                             self.assertFalse(item.property('truncated'), item.property('text'))
+                    hint = find('projectHint')
+                    view.setProperty('contentY', hint.mapToItem(view.property('contentItem'), 0, 0).y())
+                    QTest.qWait(30)
+                    window.grabWindow().save(str(output / f'project-hints-{width}.png'))
                     example = find('showProjectExample')
                     view.setProperty('contentY', example.mapToItem(view.property('contentItem'), 0, 0).y())
                     QTest.qWait(30)

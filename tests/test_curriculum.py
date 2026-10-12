@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from curriculum import TRACKS, LESSONS, check_answer
+from web_content import WEB_EXPECTED
 
 EXPECTED = {
     'start/1': 'Привет, Python!', 'start/2': 'Счёт: 5\n2 + 3', 'start/3': '5',
@@ -33,6 +34,7 @@ EXPECTED = {
     'practice/1': '4\n0', 'practice/2': '75.0', 'practice/3': '4.0',
     'practice/4': 'X', 'practice/5': '5.00', 'practice/6': 'True\nFalse\n1',
 }
+EXPECTED.update(WEB_EXPECTED)
 INPUTS = {'start/5': ['Мира', '20'], 'start/6': ['Мира', '30'], 'logic/6': ['7']}
 
 
@@ -42,7 +44,9 @@ class CurriculumTests(unittest.TestCase):
                   for i in range(1, len(s.levels) + 1)]
         self.assertEqual(len(routes), 54)
         self.assertEqual(len(routes), len(set(routes)))
-        self.assertEqual(set(routes), set(LESSONS))
+        web_routes = [f'{s.id}/{i}' for s in TRACKS['Web'] for i in range(1, len(s.levels) + 1)]
+        self.assertEqual(len(web_routes), 24)
+        self.assertEqual(set(routes + web_routes), set(LESSONS))
         self.assertEqual(set(EXPECTED), set(LESSONS))
         for key, lesson in LESSONS.items():
             with self.subTest(key=key):

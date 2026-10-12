@@ -1,2 +1,3 @@
 PySide6-Essentials==6.8.2.1
 pyinstaller==6.16.0
+-r ../examples/web_notes/requirements.txt

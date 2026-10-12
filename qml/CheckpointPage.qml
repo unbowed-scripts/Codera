@@ -12,13 +12,13 @@ Column {
     spacing: 20
     onCheckpointChanged: { hintCount = 0; exampleOpen = false }
     AppButton { text: '←  К разделу'; quiet: true; onClicked: page.shell.navigate('section', page.checkpoint.key) }
-    Copy { width: parent.width; text: 'ПОСЛЕ ШЕСТИ УРОВНЕЙ'; font.pixelSize: 11; color: backend.colors.accent }
+    Copy { width: parent.width; text: 'ИТОГ РАЗДЕЛА'; font.pixelSize: 11; color: backend.colors.accent }
     Copy { objectName: 'pageTitle'; width: parent.width; text: 'Тест и мини-проект'; font.pixelSize: 32; font.weight: Font.DemiBold }
     Copy { width: parent.width; text: page.checkpoint.title || ''; font.pixelSize: 20 }
     Copy {
         objectName: 'checkpointStatus'
         width: parent.width
-        text: !page.state.unlocked ? 'Пройдено ' + page.state.levelsDone + ' / 6 уровней. Заверши разбор заданий во всех шести уроках, чтобы открыть тест и проект.' : page.state.testPassed && page.state.projectDone ? 'Раздел завершён: тест пройден, свой проект отмечен как выполненный.' : page.state.testPassed ? 'Тест уже пройден. Осталось написать и проверить свой проект.' : 'Сначала проверь знания, затем собери свою программу. Ответы можно исправлять, а подсказки открывать по мере необходимости.'
+        text: !page.state.unlocked ? 'Пройдено ' + page.state.levelsDone + ' / ' + (page.checkpoint.levelCount || 6) + ' уровней. Заверши разбор заданий во всех уроках раздела, чтобы открыть тест и проект.' : page.state.testPassed && page.state.projectDone ? 'Раздел завершён: тест пройден, свой проект отмечен как выполненный.' : page.state.testPassed ? 'Тест уже пройден. Осталось написать и проверить свой проект.' : 'Сначала проверь знания, затем собери свою программу. Ответы можно исправлять, а подсказки открывать по мере необходимости.'
         color: backend.colors.muted
     }
     Column {
@@ -81,6 +81,7 @@ Column {
                             background: Rectangle { radius: 10; color: option.checked ? backend.colors.selected : backend.colors.input; border.width: option.activeFocus ? 2 : 1; border.color: option.activeFocus ? backend.colors.accent : backend.colors.border }
                         }
                     }
+                    TutorPanel { target: 'test:' + question.index }
                     Copy { width: parent.width; visible: text.length > 0; text: question.result.text; color: question.result.ok ? backend.colors.accent : backend.colors.warning }
                 }
             }
@@ -105,8 +106,15 @@ Column {
             }
             Repeater {
                 model: page.hintCount
-                Copy { required property int index; width: parent.width; text: (index + 1) + '. ' + page.checkpoint.project.hints[index]; color: backend.colors.accent }
+                Column {
+                    required property int index
+                    width: parent.width
+                    spacing: 12
+                    Copy { width: parent.width; text: (index + 1) + '. ' + page.checkpoint.project.hints[index]; color: backend.colors.accent }
+                    CodeHint { code: page.checkpoint.project.hintCodes[index] }
+                }
             }
+            TutorPanel { target: 'project' }
             AppButton { objectName: 'showProjectExample'; text: page.exampleOpen ? 'Скрыть пример и разбор' : 'Готовый пример и разбор'; onClicked: page.exampleOpen = !page.exampleOpen }
             Column {
                 visible: page.exampleOpen
@@ -144,7 +152,7 @@ Column {
             Copy { width: parent.width; text: 'Это твоя отметка самопроверки. Приложение проверяет ответы теста, но не запускает и не оценивает твой .py-файл.'; color: backend.colors.muted; font.pixelSize: 13 }
             AppButton {
                 objectName: 'nextSection'
-                text: page.checkpoint.key === 'practice' ? 'Завершить Python Core  →' : 'К следующему разделу  →'
+                text: page.checkpoint.isTrackFinal ? 'Завершить ' + (page.checkpoint.track === 'Web' ? 'Python Web' : page.checkpoint.track) + '  →' : 'К следующему разделу  →'
                 primary: true
                 enabled: page.state.projectDone && page.state.testPassed
                 onClicked: { let key = backend.nextSection(); page.shell.navigate(key ? 'section' : 'overview', key || 'Python Core') }

@@ -186,7 +186,9 @@ Popup {
                 }
                 Copy { width: parent.width; text: 'Отключает анимацию переходов и фона, чтобы меньше отвлекаться.'; color: backend.colors.muted; font.pixelSize: 14 }
                 Rectangle { width: parent.width; height: 1; color: backend.colors.border }
-                Copy { text: 'PythonTech 0.4.0'; font.pixelSize: 20; font.weight: Font.DemiBold }
+                TutorSettings { reveal: settings.reveal }
+                Rectangle { width: parent.width; height: 1; color: backend.colors.border }
+                Copy { text: 'PythonTech 0.5.0'; font.pixelSize: 20; font.weight: Font.DemiBold }
                 Flow {
                     width: parent.width
                     spacing: 8

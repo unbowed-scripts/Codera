@@ -1,5 +1,6 @@
 """Section capstones: runnable examples, guided practice and code-reading questions."""
-from curriculum import LESSONS
+from curriculum import LESSONS, TRACKS
+from web_projects import WEB_PROJECTS
 
 
 def project(title, code, walkthrough, hints, task, criteria, reviews):
@@ -352,10 +353,14 @@ except (OSError, ValueError) as error:
 }
 
 
+PROJECTS.update(WEB_PROJECTS)
+
+
 def questions(section):
     """One recall question per level plus two authored code-reading questions."""
     recall = []
-    for index in range(1, 7):
+    count = next(len(s.levels) for sections in TRACKS.values() for s in sections if s.id == section)
+    for index in range(1, count + 1):
         exercise = LESSONS[f'{section}/{index}'].exercises[0]
         recall.append(dict(prompt=f'Уровень {index}. {exercise.prompt}', code='',
                            options=[], answer=exercise.answer, hint=exercise.hint,

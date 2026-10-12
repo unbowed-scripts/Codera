@@ -1,6 +1,7 @@
 """Junior curriculum and authored introductory exercises, independent of the UI."""
 from dataclasses import dataclass, replace
 from core_content import CONTENT, INTRO_PRACTICE
+from web_content import WEB_CONTENT
 
 
 @dataclass(frozen=True)
@@ -53,9 +54,13 @@ TRACKS = {
     ),
     'Web': (
         Section('web-basics', 'Как устроен Web', 'Поймёшь путь запроса от браузера до сервера.', (
-            'Клиент и сервер', 'HTTP: запрос и ответ', 'Адреса и параметры URL', 'JSON и обмен данными', 'Практика: разбор веб-запроса')),
+            'Клиент и сервер', 'HTTP: запрос и ответ', 'Адреса и параметры URL', 'JSON и обмен данными', 'Практика: разбор веб-запроса', 'HTML, CSS и безопасный текст')),
         Section('web-app', 'Первое веб-приложение', 'Познакомишься с созданием небольшого сервиса на Python.', (
-            'Маршруты и обработчики', 'Шаблоны и страницы', 'Формы и проверка ввода', 'Ошибки и ответы API', 'Итоговый проект: сервис заметок')),
+            'Маршруты и обработчики', 'Шаблоны и страницы', 'Формы и проверка ввода', 'Ошибки и ответы API', 'Прототип сервиса заметок', 'Формы и перенаправления')),
+        Section('web-data', 'Данные и безопасность', 'Сохранишь данные в SQLite и защитишь операции с ними.', (
+            'SQLite и таблицы', 'Параметры SQL и поиск', 'Создание, изменение и удаление', 'Cookie и сессии', 'Защита форм: CSRF', 'Транзакции и соединения')),
+        Section('web-quality', 'Тесты и законченный сервис', 'Соберёшь локальный сервис заметок с HTML, API и проверками.', (
+            'Фабрика и структура приложения', 'Конфигурация и логи', 'Тесты HTTP-обработчиков', 'Интеграционные тесты и временная база', 'Локальный запуск и публикация', 'Итоговый проект: сервис заметок')),
     ),
     'NumPy': (
         Section('numpy-basics', 'Числа и массивы', 'Освоишь массивы и вычисления над наборами чисел.', (
@@ -118,7 +123,7 @@ LESSONS = {
 }
 
 
-for _key, _record in CONTENT.items():
+for _key, _record in {**CONTENT, **WEB_CONTENT}.items():
     _theory, _code, _explanation, _remember, _practice, _criteria, _exercises = _record
     LESSONS[_key] = Lesson(_theory, _code, _explanation,
                            tuple(Exercise(*exercise) for exercise in _exercises),

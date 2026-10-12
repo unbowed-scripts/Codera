@@ -61,7 +61,7 @@ class BackendTests(unittest.TestCase):
                     if key not in LESSONS:
                         b.check(); self.assertNotIn(key, b.completed)
                         self.assertEqual(b.page['exercises'], [])
-        self.assertEqual(len(keys), 74)
+        self.assertEqual(len(keys), 88)
         route = b.routeKey
         self.assertFalse(b.open('lesson', 'bogus'))
         self.assertEqual(b.routeKey, route)

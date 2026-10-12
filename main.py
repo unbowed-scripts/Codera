@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-VERSION = '0.4.0'
+VERSION = '0.5.0'
 ROOT = Path(__file__).resolve().parent
 
 

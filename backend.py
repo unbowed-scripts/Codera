@@ -5,6 +5,8 @@ from curriculum import TRACKS, LESSONS, check_answer
 from section_content import PROJECTS, questions
 from language_catalog import LANGUAGES, FUTURE_LANGUAGES
 from themes import PALETTES, THEME_NAMES
+from ai_tutor import AiTutor
+from practice_hints import PROJECT_HINT_CODES
 
 ROUTE = [
     ('Теория', 'Короткое объяснение и понятный пример.'),
@@ -13,7 +15,7 @@ ROUTE = [
     ('Обратная связь', 'Сравниваем ответ с объяснением и подсказками.'),
     ('Практика с подсказками', 'Пишем свой код. Если трудно — открываем подсказки и возвращаемся к примеру.'),
     ('Читаемый код', 'Учимся объяснять свои решения.'),
-    ('Тест после раздела', 'После всех 6 уровней Python Core отвечаем на 6 вопросов и разбираем 2 фрагмента кода. Ошибки можно исправлять.'),
+    ('Тест после раздела', 'После всех уровней раздела отвечаем на 6 вопросов и разбираем 2 фрагмента кода. Ошибки можно исправлять.'),
     ('Мини-проект раздела', 'После теста изучаем готовый пример с разбором, пишем свою версию и проверяем её по критериям. Выполнение проекта отмечаем самостоятельно.'),
     ('Повторение', 'Возвращаемся к знакомым темам в своём темпе.'),
 ]
@@ -50,6 +52,53 @@ class Backend(QObject):
         self.section_projects = set(self.settings.value('sectionProjects', [], type=list)) & PROJECTS.keys()
         self.test_drafts = {}
         self.test_results = {}
+        self._tutor = AiTutor(self)
+        self.tutor_drafts = {}
+
+    @Property(QObject, constant=True)
+    def tutor(self):
+        return self._tutor
+
+    @Slot(str, str, str)
+    def saveTutorDraft(self, target, code, question):
+        self.tutor_drafts[self.routeKey + ':' + target] = dict(code=code, question=question)
+
+    @Slot(str, result='QVariantMap')
+    def tutorDraft(self, target):
+        return self.tutor_drafts.get(self.routeKey + ':' + target, dict(code='', question=''))
+
+    def tutor_context(self, target):
+        context = dict(route=self.routeKey, track=self._track)
+        if self._kind == 'lesson' and self._key in LESSONS:
+            lesson = LESSONS[self._key]
+            context.update(title=self.levels[self._key][3], section=self.levels[self._key][1].title,
+                           theory=lesson.theory, example=lesson.code, explanation=lesson.explanation)
+            if target == 'practice':
+                context.update(activity='Самостоятельная практика', task=lesson.practice, criteria=lesson.criteria)
+            elif target.startswith('exercise:') and target[9:].isdigit():
+                index = int(target[9:])
+                if not 0 <= index < len(lesson.exercises): return None
+                context.update(activity='Разбор кода', question_number=index + 1,
+                               task=lesson.exercises[index].prompt,
+                               student_answer=self.drafts.get(self._key, [''] * len(lesson.exercises))[index])
+            else: return None
+        elif self._kind == 'checkpoint' and self.section_status(self._key)['unlocked']:
+            context.update(section=self.sections_by_id[self._key][1].title)
+            if target == 'project' and self._key in self.section_tests:
+                project = PROJECTS[self._key]
+                context.update(activity='Мини-проект', title=project['title'], task=project['task'],
+                               example=project['code'], explanation=project['walkthrough'], criteria=project['criteria'])
+            elif target.startswith('test:') and target[5:].isdigit():
+                index = int(target[5:])
+                tasks = questions(self._key)
+                if not 0 <= index < len(tasks): return None
+                task = tasks[index]
+                context.update(activity='Итоговый тест', question_number=index + 1,
+                               task=task['prompt'], example=task.get('code', ''), options=task['options'],
+                               student_answer=self.test_drafts.get(self._key, [''] * len(tasks))[index])
+            else: return None
+        else: return None
+        return context
 
     @Property('QVariantList', constant=True)
     def languages(self):
@@ -120,7 +169,10 @@ class Backend(QObject):
         if self._kind == 'checkpoint':
             project = PROJECTS[self._key]
             return dict(key=self._key, title=self.sections_by_id[self._key][1].title,
-                        project={k: v for k, v in project.items() if k != 'reviews'},
+                        levelCount=len(self.sections_by_id[self._key][1].levels),
+                        isTrackFinal=self._key == TRACKS[self._track][-1].id, track=self._track,
+                        project={**{k: v for k, v in project.items() if k != 'reviews'},
+                                 'hintCodes': project.get('hintCodes', PROJECT_HINT_CODES.get(self._key, []))},
                         questions=[{k: v for k, v in q.items() if k not in ('answer', 'correct', 'explanation', 'hint')}
                                    for q in questions(self._key)])
         if self._kind == 'section':
@@ -134,7 +186,7 @@ class Backend(QObject):
                 data.update(theory=lesson.theory, code=lesson.code, explanation=lesson.explanation,
                             remember=lesson.remember, practice=lesson.practice, criteria=lesson.criteria,
                             isCoreFinal=self._key == 'practice/6',
-                            isSectionFinal=data['sectionKey'] in PROJECTS and data['index'] == 6,
+                            isSectionFinal=data['sectionKey'] in PROJECTS and data['index'] == len(self.levels[self._key][1].levels),
                             exercises=[{'prompt': e.prompt, 'answer': self.drafts.get(self._key, ['']*len(lesson.exercises))[i]}
                                        for i, e in enumerate(lesson.exercises)])
             else:
@@ -150,12 +202,13 @@ class Backend(QObject):
         pending = next((section.id for section in TRACKS[self._track]
                         if section.id in PROJECTS and self.section_status(section.id)['unlocked']
                         and not (section.id in self.section_tests and section.id in self.section_projects)), '')
-        return dict(nextKind='checkpoint' if pending else 'lesson', continueKey=pending or next_key,
+        project_keys = {s.id for s in TRACKS[self._track]} & PROJECTS.keys()
+        return dict(checkpointTotal=len(project_keys), nextKind='checkpoint' if pending else 'lesson', continueKey=pending or next_key,
                     sectionTests=len({s.id for s in TRACKS[self._track]} & self.section_tests),
                     sectionProjects=len({s.id for s in TRACKS[self._track]} & self.section_projects),
                     done=len(keys & self.completed), total=len(keys), ready=len(ready),
                     practiced=len(keys & self.practiced),
-                    webReady=self._track == 'Python Core' and keys <= (self.completed & self.practiced) and PROJECTS.keys() <= (self.section_tests & self.section_projects),
+                    webReady=self._track == 'Python Core' and keys <= (self.completed & self.practiced) and project_keys <= (self.section_tests & self.section_projects),
                     readyDone=len(set(ready) & self.completed), nextKey=next_key,
                     nextTitle=('Тест и проект: ' + self.sections_by_id[pending][1].title) if pending else self.levels[next_key][3] if next_key else 'Маршрут уже намечен',
                     repeat=bool(ready) and set(ready) <= self.completed)
@@ -227,6 +280,7 @@ class Backend(QObject):
             return False
         if kind == self._kind and key == self._key:
             return False
+        self._tutor.cancel()
         track_changed = track != self._track
         self._kind, self._key, self._track = kind, key, track
         if track_changed:
@@ -298,8 +352,9 @@ class Backend(QObject):
             QGuiApplication.clipboard().setText(LESSONS[self._key].code)
 
     def section_status(self, key):
-        required = {f'{key}/{i}' for i in range(1, 7)}
-        return dict(unlocked=key in PROJECTS and required <= self.completed,
+        count = len(self.sections_by_id[key][1].levels)
+        required = {f'{key}/{i}' for i in range(1, count + 1)}
+        return dict(levelCount=count, unlocked=key in PROJECTS and required <= self.completed,
                     levelsDone=len(required & self.completed),
                     testPassed=key in self.section_tests,
                     projectDone=key in self.section_projects)

@@ -7,7 +7,7 @@ Column {
     spacing: 20
     AppButton { text: '←  Все разделы'; quiet: true; onClicked: page.shell.navigate('overview', backend.track) }
     Copy { objectName: 'pageTitle'; width: parent.width; text: 'Твой маршрут обучения'; font.pixelSize: 32; font.weight: Font.DemiBold }
-    Copy { width: parent.width; text: 'Каждый раздел Python Core: 6 уровней → итоговый тест → мини-проект с подсказками.'; color: backend.colors.muted }
+    Copy { width: parent.width; text: 'Каждый раздел Python Core и Web: 6 уровней → итоговый тест → мини-проект с подсказками.'; color: backend.colors.muted }
     Mountain { width: parent.width }
     Repeater {
         model: backend.route

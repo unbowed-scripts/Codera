@@ -18,3 +18,9 @@ assets/
 .build-venv/
 build/
 dist/
+
+# Local Web practice databases.
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm

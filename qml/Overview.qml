@@ -19,8 +19,8 @@ Column {
             Copy { width: parent.width; text: backend.progress.nextTitle; font.pixelSize: 24; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: backend.progress.ready ? backend.progress.readyDone + ' / ' + backend.progress.ready + ' доступных уроков пройдено' : 'Изучи программу разделов. Первые задания уже доступны в Python Core.'; color: backend.colors.muted }
             Copy { width: parent.width; visible: backend.progress.ready > 0; text: 'Самостоятельная практика: ' + backend.progress.practiced + ' / ' + backend.progress.ready + '. Отмечается тобой после запуска своего кода.'; color: backend.colors.muted; font.pixelSize: 13 }
-            Copy { width: parent.width; visible: backend.track === 'Python Core'; text: 'Итоги разделов: тесты ' + backend.progress.sectionTests + ' / 9 · проекты ' + backend.progress.sectionProjects + ' / 9'; color: backend.colors.muted; font.pixelSize: 13 }
-            Copy { width: parent.width; visible: backend.progress.webReady; text: 'Python Core завершён по твоим отметкам. Проверь итоговый проект и переходи к маршруту Web.'; color: backend.colors.codeText }
+            Copy { width: parent.width; visible: backend.progress.checkpointTotal > 0; text: 'Итоги разделов: тесты ' + backend.progress.sectionTests + ' / ' + backend.progress.checkpointTotal + ' · проекты ' + backend.progress.sectionProjects + ' / ' + backend.progress.checkpointTotal; color: backend.colors.muted; font.pixelSize: 13 }
+            Copy { width: parent.width; visible: backend.progress.webReady; text: 'Python Core завершён по твоим отметкам. Проверь итоговый проект и переходи к курсу Python Web.'; color: backend.colors.codeText }
             AppButton {
                 objectName: 'continueLearning'
                 text: !backend.progress.ready ? 'Перейти в Python Core  →' : backend.progress.nextKind === 'checkpoint' ? 'Завершить раздел  →' : backend.progress.repeat ? 'Повторить урок  →' : backend.progress.readyDone ? 'Продолжить обучение  →' : 'Начать обучение  →'
@@ -58,5 +58,5 @@ Column {
             }
         }
     }
-    Copy { width: parent.width; text: 'Уроки можно открывать свободно. Итоговый тест и мини-проект доступны после шести уровней раздела.'; font.pixelSize: 12; color: backend.colors.muted }
+    Copy { width: parent.width; text: 'Уроки можно открывать свободно. Итоговый тест и мини-проект доступны после всех уровней раздела.'; font.pixelSize: 12; color: backend.colors.muted }
 }

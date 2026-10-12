@@ -54,6 +54,53 @@ class QuickTests(unittest.TestCase):
         self.assertFalse(self.window.property('changing'))
         self.assertAlmostEqual(self.view.opacity(), 1)
 
+    def test_tutor_hints_context_drafts_and_responsive_layout(self):
+        from pathlib import Path
+        output = Path('build/tutor-preview')
+        output.mkdir(parents=True, exist_ok=True)
+        self.backend.reducedMotion = True
+        self.navigate('lesson', 'start/1')
+        QMetaObject.invokeMethod(self.find('lessonPracticeHint'), 'clicked')
+        self.assertTrue(self.find('practiceHintCode').isVisible())
+        self.assertEqual(self.find('practiceHintCode').property('code'), LESSONS['start/1'].code)
+        QMetaObject.invokeMethod(self.find('tutorToggle_practice'), 'clicked')
+        self.find('tutorCode_practice').setProperty('text', 'print("мой код")')
+        self.backend.tutor._states['lesson:start/1:practice'] = {
+            'text': 'Попробуй изменить сообщение.\n```python\nprint("Привет!")\n```', 'error': ''}
+        self.backend.tutor.changed.emit()
+        for width, height in ((1380, 940), (360, 800)):
+            self.window.setWidth(width)
+            self.window.setHeight(height)
+            QTest.qWait(60)
+            for name, suffix in [('practiceHintCode', 'hint'), ('tutorCode_practice', 'tutor')]:
+                target = self.find(name)
+                top = target.mapToItem(self.view.property('contentItem'), 0, 0).y()
+                self.view.setProperty('contentY', top - 30)
+                QTest.qWait(40)
+                self.assertLessEqual(target.width(), self.view.width())
+                self.window.grabWindow().save(str(output / f'{width}-{suffix}.png'))
+            self.assertLessEqual(self.view.property('contentWidth'), self.view.width())
+            self.find('openSettings').forceActiveFocus()
+            QTest.keyClick(self.window, Qt.Key_Space)
+            QTest.qWait(40)
+            field = self.find('aiUrl')
+            field.forceActiveFocus()
+            QTest.qWait(40)
+            self.window.grabWindow().save(str(output / f'{width}-settings.png'))
+            self.assertLessEqual(field.width(), self.find('settingsScroll').width())
+            self.find('aiConnect').forceActiveFocus()
+            QTest.qWait(40)
+            self.window.grabWindow().save(str(output / f'{width}-connection.png'))
+            for item in walk(self.window.contentItem()):
+                if item.isVisible() and item.property('truncated') is not None:
+                    self.assertFalse(item.property('truncated'), item.property('text'))
+            QTest.keyClick(self.window, Qt.Key_Escape)
+        self.navigate('lesson', 'start/2')
+        self.assertEqual(self.find('tutorCode_practice').property('text'), '')
+        self.assertEqual(self.backend.tutor.state('practice')['text'], '')
+        self.navigate('lesson', 'start/1')
+        self.assertEqual(self.find('tutorCode_practice').property('text'), 'print("мой код")')
+
     def test_real_click_navigation_and_no_duplicate_selection(self):
         target = self.find('continueLearning')
         pos = target.mapToScene(target.boundingRect().center()).toPoint()
@@ -264,7 +311,7 @@ class QuickTests(unittest.TestCase):
         self.assertEqual(self.backend.theme, 'blue')
         self.assertTrue(self.find('themeCard_blue').hasActiveFocus())
         self.assertGreater(self.find('themeStrip').property('contentX'), 0)
-        for name, expected in [('openUpdates', '0.4.0'), ('openAbout', 'Unbowed / byteix')]:
+        for name, expected in [('openUpdates', '0.5.0'), ('openAbout', 'Unbowed / byteix')]:
             button = self.find(name)
             button.forceActiveFocus()
             QTest.keyClick(self.window, Qt.Key_Space)
