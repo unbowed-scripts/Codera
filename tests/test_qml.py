@@ -68,7 +68,7 @@ class QuickTests(unittest.TestCase):
         self.backend.tutor._states['lesson:start/1:practice'] = {
             'text': 'Попробуй изменить сообщение.\n```python\nprint("Привет!")\n```', 'error': ''}
         self.backend.tutor.changed.emit()
-        for width, height in ((1380, 940), (360, 800)):
+        for width, height in ((1000, 700), (360, 700)):
             self.window.setWidth(width)
             self.window.setHeight(height)
             QTest.qWait(60)
@@ -259,8 +259,8 @@ class QuickTests(unittest.TestCase):
 
     def test_settings_cards_click_motion_and_return(self):
         # Offscreen displays may default to 800px; this case checks desktop cards.
-        self.window.setWidth(1380)
-        self.window.setHeight(940)
+        self.window.setWidth(1000)
+        self.window.setHeight(700)
         QTest.qWait(40)
         button = self.find('openSettings')
         QTest.mouseClick(self.window, Qt.LeftButton, Qt.NoModifier,

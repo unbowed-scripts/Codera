@@ -96,9 +96,9 @@ class CheckpointSmoke(unittest.TestCase):
                 # A compact visual check without a full regression run.
                 output = Path(os.environ.get('PYTHONTECH_SMOKE_OUTPUT', folder))
                 output.mkdir(parents=True, exist_ok=True)
-                for width in (1380, 360):
+                for width in (1000, 360):
                     window.setWidth(width)
-                    window.setHeight(940 if width == 1380 else 700)
+                    window.setHeight(700 if width == 1000 else 700)
                     QTest.qWait(40)
                     view = find('courseViewport')
                     self.assertLessEqual(view.property('contentWidth'), view.width())
