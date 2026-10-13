@@ -1,3 +1,4 @@
+from contextlib import closing
 import sqlite3
 import tempfile
 import unittest
@@ -28,7 +29,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/books/999').status_code, 404)
 
     def test_escape_sql_and_restart(self):
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute('INSERT INTO books VALUES (5, ?, 1)', ("<script>alert('x')</script>",))
         html = self.client.get('/?q=%3Cscript%3E').get_data(as_text=True)
         self.assertIn('&lt;script&gt;', html)

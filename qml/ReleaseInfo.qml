@@ -9,6 +9,8 @@ Popup {
     property var opener: null
     parent: Overlay.overlay
     anchors.centerIn: parent
+    implicitWidth: 620
+    implicitHeight: 640
     width: Math.min(620, parent.width - 32)
     height: Math.min(640, parent.height - 32)
     padding: width < 400 ? 16 : 24

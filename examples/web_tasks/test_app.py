@@ -1,3 +1,4 @@
+from contextlib import closing
 import sqlite3
 import tempfile
 import unittest
@@ -30,7 +31,7 @@ class TaskTests(unittest.TestCase):
         self.account(self.client, 'anna')
         duplicate = self.send(self.client, 'POST', '/auth/register', {'username': 'Anna', 'password': self.password})
         self.assertEqual(duplicate.status_code, 409)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             hashed = db.execute('SELECT password_hash FROM users').fetchone()[0]
         self.assertNotEqual(hashed, self.password)
         self.assertTrue(check_password_hash(hashed, self.password))
