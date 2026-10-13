@@ -42,6 +42,14 @@ class Backend(QObject):
         self.levels = {f'{s.id}/{i}': (track, s, i, title)
                        for track, sections in TRACKS.items() for s in sections
                        for i, title in enumerate(s.levels, 1)}
+        self.track_keys = {track: frozenset(key for key, info in self.levels.items() if info[0] == track)
+                           for track in TRACKS}
+        self.ready_keys = {track: tuple(key for key in self.levels if key in keys and key in LESSONS)
+                           for track, keys in self.track_keys.items()}
+        self.section_keys = {s.id: frozenset(f'{s.id}/{i}' for i in range(1, len(s.levels) + 1))
+                             for sections in TRACKS.values() for s in sections}
+        self.next_keys = {key: keys[index + 1] if index + 1 < len(keys) else ''
+                          for keys in self.ready_keys.values() for index, key in enumerate(keys)}
         self._track = 'Python Core'
         self._kind = 'overview'
         self._key = 'Python Core'
@@ -196,8 +204,8 @@ class Backend(QObject):
 
     @Property('QVariantMap', notify=progressChanged)
     def progress(self):
-        keys = {key for key, info in self.levels.items() if info[0] == self._track}
-        ready = [key for key in self.levels if key in keys and key in LESSONS]
+        keys = self.track_keys[self._track]
+        ready = self.ready_keys[self._track]
         next_key = next((key for key in ready if key not in self.completed), ready[0] if ready else '')
         pending = next((section.id for section in TRACKS[self._track]
                         if section.id in PROJECTS and self.section_status(section.id)['unlocked']
@@ -341,10 +349,7 @@ class Backend(QObject):
     def nextLesson(self):
         if self._kind != 'lesson' or self._key not in self.completed:
             return ''
-        track = self.levels[self._key][0]
-        keys = [key for key, info in self.levels.items() if info[0] == track and key in LESSONS]
-        index = keys.index(self._key)
-        return keys[index + 1] if index + 1 < len(keys) else ''
+        return self.next_keys.get(self._key, '')
 
     @Slot()
     def copyCode(self):
@@ -353,7 +358,7 @@ class Backend(QObject):
 
     def section_status(self, key):
         count = len(self.sections_by_id[key][1].levels)
-        required = {f'{key}/{i}' for i in range(1, count + 1)}
+        required = self.section_keys[key]
         return dict(levelCount=count, unlocked=key in PROJECTS and required <= self.completed,
                     levelsDone=len(required & self.completed),
                     testPassed=key in self.section_tests,

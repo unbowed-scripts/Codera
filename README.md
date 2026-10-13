@@ -47,7 +47,9 @@ The screenshots show the actual Russian interface.
 
 ### Download an app build
 
-Choose an available package on the [Releases page](https://github.com/unbowed-scripts/PythonTech/releases). The source version is **0.6.0**; published installers may have a different version.
+Choose an available package on the [Releases page](https://github.com/unbowed-scripts/PythonTech/releases). The source version is **0.7.0**; published installers may have a different version.
+
+Course compression, on-demand loading, and progress compatibility are described in [storage notes (Russian)](docs/STORAGE.md).
 
 - **Windows:** run the installer, or extract the entire portable archive and open `PythonTech.exe`. Keep its accompanying files together.
 - **Linux:** install the `.deb` package, or extract the archive and launch `PythonTech` from its directory.

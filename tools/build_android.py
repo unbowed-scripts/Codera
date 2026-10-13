@@ -13,8 +13,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 P4A_COMMIT = 'b92522fab879dbfc0028966ca3c59ef46ab7767d'
-SOURCES = ('main.py', 'backend.py', 'curriculum.py', 'core_content.py',
-           'section_content.py', 'language_catalog.py', 'themes.py', 'ai_tutor.py', 'practice_hints.py', 'web_content.py', 'web_extended_content.py', 'web_projects.py')
+SOURCES = ('main.py', 'backend.py', 'curriculum.py', 'content_models.py',
+           'content_archive.py', 'section_content.py', 'language_catalog.py',
+           'themes.py', 'ai_tutor.py', 'practice_hints.py')
 
 
 def run(*args, cwd):
@@ -48,6 +49,11 @@ def main():
     stage.mkdir(parents=True, exist_ok=True)
     for name in SOURCES:
         shutil.copy2(ROOT / name, stage / name)
+    from pack_courses import pack_courses
+    pack_courses(stage / 'courses.zip')
+    for name in ('curriculum_source', 'section_source', 'core_content', 'web_content',
+                 'web_extended_content', 'web_projects'):
+        (stage / f'{name}.py').unlink(missing_ok=True)
     entry = stage / 'main.py'
     entry.write_text(re.sub(r"^VERSION = .*", f"VERSION = {args.version!r}", entry.read_text(), flags=re.MULTILINE))
     for folder in ('web_notes', 'web_catalog', 'web_tasks'):
@@ -80,7 +86,7 @@ def main():
         'title': 'PythonTech', 'package.name': 'pythontech',
         'package.domain': 'org.pythontech', 'version': args.version,
         'android.numeric_version': str(args.version_code),
-        'source.include_exts': 'py,qml,js,png,jpg,jpeg,svg,json,md,txt',
+        'source.include_exts': 'py,qml,js,png,jpg,jpeg,svg,json,md,txt,zip',
         'source.exclude_dirs': '.buildozer,deployment,__pycache__',
         'requirements': 'python3==3.11.5,hostpython3==3.11.5,shiboken6,PySide6',
         'android.api': '34', 'android.minapi': '28', 'android.ndk_api': '28',

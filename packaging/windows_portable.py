@@ -14,6 +14,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from main import VERSION
+from tools.pack_courses import pack_courses
 
 
 def main():
@@ -38,9 +39,10 @@ def main():
             archive.extractall(app)
     # Embedded Python searches only this application directory and its standard library.
     (app / 'python312._pth').write_text('python312.zip\n.\nimport site\n', encoding='utf-8')
-    for name in ('main.py', 'backend.py', 'curriculum.py', 'core_content.py',
-                 'section_content.py', 'language_catalog.py', 'themes.py', 'ai_tutor.py',
-                 'practice_hints.py', 'web_content.py', 'web_extended_content.py', 'web_projects.py'):
+    pack_courses(app / 'courses.zip')
+    for name in ('main.py', 'backend.py', 'curriculum.py', 'content_models.py',
+                 'content_archive.py', 'section_content.py', 'language_catalog.py',
+                 'themes.py', 'ai_tutor.py', 'practice_hints.py'):
         shutil.copy2(ROOT / name, app / name)
     shutil.copytree(ROOT / 'qml', app / 'qml')
     for folder in ('web_notes', 'web_catalog', 'web_tasks'):

@@ -258,6 +258,10 @@ class QuickTests(unittest.TestCase):
         self.assertEqual(self.backend.page['exercises'][0]['answer'], 'Привет, Python!')
 
     def test_settings_cards_click_motion_and_return(self):
+        # Offscreen displays may default to 800px; this case checks desktop cards.
+        self.window.setWidth(1380)
+        self.window.setHeight(940)
+        QTest.qWait(40)
         button = self.find('openSettings')
         QTest.mouseClick(self.window, Qt.LeftButton, Qt.NoModifier,
                          button.mapToScene(button.boundingRect().center()).toPoint())
@@ -311,7 +315,7 @@ class QuickTests(unittest.TestCase):
         self.assertEqual(self.backend.theme, 'blue')
         self.assertTrue(self.find('themeCard_blue').hasActiveFocus())
         self.assertGreater(self.find('themeStrip').property('contentX'), 0)
-        for name, expected in [('openUpdates', '0.5.0'), ('openAbout', 'Unbowed / byteix')]:
+        for name, expected in [('openUpdates', '0.7.0'), ('openAbout', 'Unbowed / byteix')]:
             button = self.find(name)
             button.forceActiveFocus()
             QTest.keyClick(self.window, Qt.Key_Space)

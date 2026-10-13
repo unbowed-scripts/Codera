@@ -25,6 +25,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 libxcb-cursor0
       - name: Install build dependencies
         run: python -m pip install -r packaging/requirements-build.txt
+      - name: Test application and course storage
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+        run: python -m unittest discover -s tests -v
       - name: Collect notices
         run: python packaging/collect_licenses.py
       - name: Freeze application
@@ -69,6 +74,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v7
         with:
           pattern: installers-*
@@ -81,4 +88,6 @@ jobs:
           cd installers
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh release create v0.6.0 installers/* --target "$GITHUB_SHA" --title 'PythonTech 0.6.0' --notes-file packaging/RELEASE_NOTES.md
+          version=$(python -c "from main import VERSION; print(VERSION)")
+          test "$(git rev-parse "v$version^{commit}")" = "$GITHUB_SHA"
+          gh release create "v$version" installers/* --verify-tag --title "PythonTech $version" --notes-file packaging/RELEASE_NOTES.md
