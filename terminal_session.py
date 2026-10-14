@@ -109,7 +109,7 @@ class TerminalSession(QObject):
         while not stop.is_set():
             try:
                 data = process.read(8192)
-                if not data: break
+                if not data: continue
                 while not stop.is_set():
                     try:
                         output.put(data.encode('utf-8'), timeout=.1)
@@ -232,6 +232,10 @@ class TerminalSession(QObject):
                 pass
             try:
                 process.close(force=True)
+                if os.name == 'nt':
+                    # pywinpty may mark closed when the child exits, before closing sockets.
+                    process.fileobj.close()
+                    process._server.close()
             except (OSError, EOFError):
                 pass
         self.changed.emit()

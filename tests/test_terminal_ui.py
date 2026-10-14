@@ -33,7 +33,9 @@ class TerminalUiTests(unittest.TestCase):
         self.backend.open('lesson', 'start/1')
         self.engine = create_engine(self.backend)
         self.window = self.engine.rootObjects()[0]
-        self.window.setWidth(1200); self.window.setHeight(800)
+        geometry = app.primaryScreen().availableGeometry()
+        self.window.setWidth(min(1200, geometry.width() - 80))
+        self.window.setHeight(min(800, geometry.height() - 100))
         self.window.setProperty('inCourse', True)
         self.ws.open('practice')
         from runtime_manager import RuntimeManager
