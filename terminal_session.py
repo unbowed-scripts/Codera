@@ -6,6 +6,38 @@ import threading
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
 
+class WindowsPtyProcess:
+    """Use native ConPTY directly; drain output without pywinpty's socket relay."""
+    def __init__(self, argv, cwd, env, dimensions):
+        import subprocess
+        from winpty import PTY
+        from winpty.enums import Backend
+        self.pty = PTY(dimensions[1], dimensions[0], backend=Backend.ConPTY)
+        self.pty.spawn(argv[0], cwd=cwd, env='\0'.join(f'{k}={v}' for k, v in env.items()) + '\0',
+                       cmdline=' ' + subprocess.list2cmdline(argv[1:]))
+        self.pid = self.pty.pid
+
+    def read(self, size):
+        return self.pty.read(size, blocking=True)
+
+    def write(self, text):
+        return self.pty.write(text)
+
+    def isalive(self):
+        return self.pty.isalive()
+
+    def setwinsize(self, rows, columns):
+        self.pty.set_size(columns, rows)
+
+    def close(self, force=False):
+        if self.isalive():
+            import psutil
+            try:
+                psutil.Process(self.pid).kill()
+            except psutil.NoSuchProcess:
+                pass
+
+
 class PosixPtyProcess:
     """Spawn without Python callbacks after fork in Qt's multithreaded process."""
     def __init__(self, argv, cwd, env, dimensions):
@@ -92,9 +124,7 @@ class TerminalSession(QObject):
         self._stop_reader = threading.Event()
         self._reader_done = threading.Event()
         if os.name == 'nt':
-            from winpty import PtyProcess
-            self.process = PtyProcess.spawn(argv, cwd=cwd, env=env,
-                                            dimensions=(self._size[1], self._size[0]))
+            self.process = WindowsPtyProcess(argv, cwd, env, (self._size[1], self._size[0]))
             threading.Thread(target=self._read_windows,
                              args=(self.process, self._queue, self._stop_reader, self._reader_done), daemon=True).start()
         else:
@@ -109,7 +139,10 @@ class TerminalSession(QObject):
         while not stop.is_set():
             try:
                 data = process.read(8192)
-                if not data: continue
+                if not data:
+                    if process.pty.iseof(): break
+                    stop.wait(.01)
+                    continue
                 while not stop.is_set():
                     try:
                         output.put(data.encode('utf-8'), timeout=.1)
@@ -232,10 +265,7 @@ class TerminalSession(QObject):
                 pass
             try:
                 process.close(force=True)
-                if os.name == 'nt':
-                    # pywinpty may mark closed when the child exits, before closing sockets.
-                    process.fileobj.close()
-                    process._server.close()
+
             except (OSError, EOFError):
                 pass
         self.changed.emit()
