@@ -18,7 +18,13 @@ class WindowsPtyProcess:
         self.pid = self.pty.pid
 
     def read(self, size):
-        return self.pty.read(size, blocking=True)
+        from winpty import WinptyError
+        try:
+            return self.pty.read(size, blocking=True)
+        except WinptyError as error:
+            if self.pty.iseof() or not self.pty.isalive():
+                raise EOFError(str(error)) from error
+            raise OSError(str(error)) from error
 
     def write(self, text):
         return self.pty.write(text)
