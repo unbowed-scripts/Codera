@@ -1,1 +1,6 @@
 PySide6==6.8.2.1
+pyte>=0.8.2,<0.9
+pywinpty>=2.0.15,<3; sys_platform == 'win32'
+keyring>=25,<26
+uv>=0.13,<0.14
+psutil>=7,<8

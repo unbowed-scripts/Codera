@@ -1,5 +1,7 @@
 <div align="center">
 
+**Version 0.8.0:** an editor, embedded/external terminals, per-lesson projects, Python downloads and OS credential storage. See the [workspace guide](docs/WORKSPACE.md) for setup, verification and limitations.
+
 # PythonTech
 
 **Learn Python. Understand the code. Build your own project.**
@@ -47,7 +49,7 @@ The screenshots show the actual Russian interface.
 
 ### Download an app build
 
-Choose an available package on the [Releases page](https://github.com/unbowed-scripts/PythonTech/releases). The source version is **0.7.0**; published installers may have a different version.
+Choose an available package on the [Releases page](https://github.com/unbowed-scripts/PythonTech/releases). The source version is **0.8.0 (local preview)**; published installers may have a different version.
 
 Course compression, on-demand loading, and progress compatibility are described in [storage notes (Russian)](docs/STORAGE.md).
 
@@ -89,7 +91,7 @@ The commands below use `python` from an activated virtual environment. Activate 
 4. Mark the practice as completed after checking it yourself.
 5. Finish a section's six lessons to unlock its test. Pass all eight test questions, then complete the mini-project.
 
-**The app checks short answers, not your program.** It does not execute learner code. Practice and project completion are self-reported. Answer drafts and AI questions/code are kept only during the current session.
+**The app checks short answers, not your program.** The workspace can execute local code, but it does not grade it. Practice and project completion are self-reported. Answer drafts and AI questions/code are kept only during the current session.
 
 ### Try the Web project
 
@@ -112,7 +114,7 @@ For a task, open **«Помощь ИИ»** (AI help), optionally paste your code
 
 | What is sent | What is stored |
 | --- | --- |
-| A short connection check; task context, example, current answer, pasted code and question when you request a hint | The address and model name persist. The API key stays in memory until disconnect or app exit. |
+| A short connection check; task context, example, current answer, pasted code and question when you request a hint | The address and model name persist. With saving enabled, the API key is stored in the native OS credential store. If unavailable, the key stays only in memory until disconnect or app exit. |
 
 Requests go directly to your chosen provider; its fees and limits apply. Remote APIs require HTTPS. A separately installed local model may use an address such as `http://localhost:11434/v1` and work without internet. The tutor cannot read local files, execute code or change progress. Check its advice by running your code.
 

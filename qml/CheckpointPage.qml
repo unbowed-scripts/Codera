@@ -114,6 +114,8 @@ Column {
                     CodeHint { code: page.checkpoint.project.hintCodes[index] }
                 }
             }
+            AppButton { objectName: 'openProjectWorkspace'; text: 'Создать свой проект'; primary: true; onClicked: backend.workspace.open('project') }
+            Copy { width: parent.width; visible: !backend.workspace.active && text.length > 0; text: backend.workspace.status; color: backend.colors.muted; font.pixelSize: 12 }
             TutorPanel { target: 'project' }
             AppButton { objectName: 'showProjectExample'; text: page.exampleOpen ? 'Скрыть пример и разбор' : 'Готовый пример и разбор'; onClicked: page.exampleOpen = !page.exampleOpen }
             Column {

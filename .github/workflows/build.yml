@@ -41,7 +41,9 @@ jobs:
         env:
           QT_QPA_PLATFORM: ${{ runner.os == 'Windows' && 'windows' || 'offscreen' }}
           QT_QUICK_BACKEND: software
-        run: dist/PythonTech/PythonTech --smoke-test
+        run: |
+          dist/PythonTech/PythonTech --smoke-test
+          dist/PythonTech/PythonTech --workspace-smoke-test
       - name: Build Linux installers
         if: runner.os == 'Linux'
         run: python packaging/linux.py
@@ -63,6 +65,9 @@ jobs:
           $process = Start-Process -FilePath "$destination/PythonTech.exe" -ArgumentList '--smoke-test' -PassThru
           if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'Application startup timed out' }
           if ($process.ExitCode -ne 0) { throw "Installed app smoke test failed: $($process.ExitCode)" }
+          $process = Start-Process -FilePath "$destination/PythonTech.exe" -ArgumentList '--workspace-smoke-test' -PassThru
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'Workspace startup timed out' }
+          if ($process.ExitCode -ne 0) { throw "Workspace smoke test failed: $($process.ExitCode)" }
       - uses: actions/upload-artifact@v6
         with:
           name: installers-${{ runner.os }}

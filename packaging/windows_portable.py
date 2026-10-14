@@ -26,7 +26,7 @@ def main():
     wheels = cache / 'wheels'
     subprocess.run([sys.executable, '-m', 'pip', 'download', '--only-binary=:all:',
                     '--platform', 'win_amd64', '--python-version', '312', '--implementation', 'cp',
-                    '--abi', 'cp312', '--dest', str(wheels), 'PySide6-Essentials==6.8.2.1'], check=True)
+                    '--abi', 'cp312', '--dest', str(wheels), 'PySide6-Essentials==6.8.2.1', 'pyte>=0.8.2,<0.9', 'psutil>=7,<8', 'pywinpty>=2.0.15,<3', 'keyring>=25,<26', 'pywin32-ctypes>=0.2.3', 'uv>=0.13,<0.14'], check=True)
     stage = ROOT / 'build/windows-portable/PythonTech'
     if stage.exists():
         shutil.rmtree(stage)
@@ -37,14 +37,19 @@ def main():
     for wheel in wheels.glob('*.whl'):
         with zipfile.ZipFile(wheel) as archive:
             archive.extractall(app)
+    uv_binary = next(app.glob('uv-*.data/scripts/uv.exe'))
+    (app / 'tools').mkdir(exist_ok=True)
+    shutil.copy2(uv_binary, app / 'tools/uv.exe')
     # Embedded Python searches only this application directory and its standard library.
     (app / 'python312._pth').write_text('python312.zip\n.\nimport site\n', encoding='utf-8')
     pack_courses(app / 'courses.zip')
     for name in ('main.py', 'backend.py', 'curriculum.py', 'content_models.py',
                  'content_archive.py', 'section_content.py', 'language_catalog.py',
-                 'themes.py', 'ai_tutor.py', 'practice_hints.py'):
+                 'themes.py', 'ai_tutor.py', 'practice_hints.py', 'workspace.py', 'terminal_session.py', 'runtime_manager.py', 'credentials.py', 'terminal_preferences.py', 'terminal_surface.py'):
         shutil.copy2(ROOT / name, app / name)
     shutil.copytree(ROOT / 'qml', app / 'qml')
+    (stage / 'docs').mkdir(exist_ok=True)
+    shutil.copy2(ROOT / 'docs/WORKSPACE.md', stage / 'docs/WORKSPACE.md')
     for folder in ('web_notes', 'web_catalog', 'web_tasks'):
         destination = app / 'examples' / folder
         destination.mkdir(parents=True, exist_ok=True)

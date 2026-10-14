@@ -31,7 +31,11 @@ ApplicationWindow {
 
     function enterCourse() { inCourse = true }
     function leaveCourse() { drawerOpen = false; inCourse = false }
+    onClosing: function(close) {
+        if (backend.workspace.active && !backend.workspace.close()) close.accepted = false
+    }
     function goBack() {
+        if (backend.workspace.active) { backend.workspace.close(); return }
         if (settingsMenu.closeInfo()) return
         if (settingsMenu.opened) { settingsMenu.close(); return }
         if (drawerOpen) { drawerOpen = false; return }
@@ -99,6 +103,12 @@ ApplicationWindow {
             }
             AppButton { text: window.compact ? 'Язык' : 'Сменить язык'; quiet: true; visible: window.inCourse; onClicked: window.leaveCourse() }
         }
+    }
+    TerminalWindow { id: terminalWindow }
+    WorkspaceView { id: workspaceView }
+    Connections {
+        target: backend.workspace
+        function onFinished(kind, key) { window.navigate(kind, key) }
     }
     SettingsMenu { id: settingsMenu; opener: settingsButton }
     Landing { anchors.fill: parent; shell: window; visible: !window.inCourse; running: visible && window.visible && window.visibility !== Window.Minimized }

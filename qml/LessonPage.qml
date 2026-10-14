@@ -101,6 +101,8 @@ Column {
             Copy { width: parent.width; text: page.lesson.remember || ''; font.pixelSize: 19 }
             Copy { width: parent.width; text: 'Самостоятельная практика'; font.pixelSize: 22; font.weight: Font.DemiBold }
             Copy { width: parent.width; text: page.lesson.practice || '' }
+            AppButton { objectName: 'openWorkspace'; text: 'Открыть рабочее пространство'; primary: true; onClicked: backend.workspace.open('practice') }
+            Copy { width: parent.width; visible: !backend.workspace.active && text.length > 0; text: backend.workspace.status; color: backend.colors.muted; font.pixelSize: 12 }
             AppButton { objectName: 'lessonPracticeHint'; text: page.practiceHintOpen ? 'Скрыть подсказку' : 'Подсказка к практике'; onClicked: page.practiceHintOpen = !page.practiceHintOpen }
             Copy { width: parent.width; visible: page.practiceHintOpen; text: '1. Вспомни правило: ' + (page.lesson.remember || '') + '\n\n2. Разбери пример: ' + (page.lesson.explanation || '') + '\n\n3. Измени пример под свою задачу. Проверь результат по критериям ниже.'; color: backend.colors.muted }
             CodeHint { objectName: 'practiceHintCode'; visible: page.practiceHintOpen; code: page.lesson.code || '' }

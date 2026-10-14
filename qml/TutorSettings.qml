@@ -35,7 +35,15 @@ Column {
         placeholderText: 'API-ключ'
         onActiveFocusChanged: if (activeFocus) settings.reveal(key)
     }
-    Copy { width: parent.width; text: 'Адрес и название модели сохраняются. Ключ хранится до закрытия приложения. Проверка подключения отправляет короткий запрос, который может быть платным. Задание отправляется по кнопке «Получить подсказку».'; color: backend.colors.muted; font.pixelSize: 12 }
+    Copy { width: parent.width; text: 'Адрес и название модели сохраняются. API-ключ можно сохранить в защищённом хранилище Windows, macOS или Linux. При его недоступности ключ остаётся только в памяти. Проверка подключения отправляет короткий запрос, который может быть платным. Задание отправляется по кнопке «Получить подсказку».'; color: backend.colors.muted; font.pixelSize: 12 }
+    CheckBox {
+        id: remember
+        width: parent.width
+        checked: true
+        text: 'Сохранить ключ в системном хранилище'
+        contentItem: Copy { text: remember.text; leftPadding: 32 }
+    }
+    Copy { width: parent.width; text: backend.tutor.credentialStatus; visible: text.length > 0; color: backend.colors.muted }
     Flow {
         width: parent.width
         spacing: 8
@@ -45,8 +53,10 @@ Column {
             text: 'Подключить и проверить'
             enabled: !backend.tutor.busy
             onActiveFocusChanged: if (activeFocus) settings.reveal(connect)
-            onClicked: { backend.tutor.connectModel(url.text, model.text, key.text); key.clear() }
+            onClicked: { backend.tutor.connectAndRemember(url.text, model.text, key.text, remember.checked); key.clear() }
         }
+        AppButton { text: 'Подключить сохранённую модель'; visible: backend.tutor.savedKey; enabled: !backend.tutor.busy; onClicked: backend.tutor.connectSaved() }
+        AppButton { text: 'Удалить сохранённый ключ'; visible: backend.tutor.savedKey; onClicked: backend.tutor.forgetKey() }
         AppButton {
             id: disconnect
             text: 'Отключить'

@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 P4A_COMMIT = 'b92522fab879dbfc0028966ca3c59ef46ab7767d'
 SOURCES = ('main.py', 'backend.py', 'curriculum.py', 'content_models.py',
            'content_archive.py', 'section_content.py', 'language_catalog.py',
-           'themes.py', 'ai_tutor.py', 'practice_hints.py')
+           'themes.py', 'ai_tutor.py', 'practice_hints.py', 'workspace.py',
+           'terminal_session.py', 'runtime_manager.py', 'credentials.py', 'terminal_preferences.py', 'terminal_surface.py')
 
 
 def run(*args, cwd):

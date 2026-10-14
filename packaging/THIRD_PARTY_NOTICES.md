@@ -19,3 +19,7 @@ Corresponding upstream source and build information:
 The application source, dependency versions, and packaging scripts are available at https://github.com/unbowed-scripts/PythonTech. No Qt or Python source code modifications are made by this project.
 
 - Language avatars: Devicon v2.17.0, MIT license, https://github.com/devicons/devicon. The license is bundled at qml/icons/languages/DEVICON-LICENSE.txt. Language names and logos belong to their respective owners; their use identifies courses and does not imply endorsement. The generic SQL database icon is part of this application.
+
+## Workspace dependencies (0.8.0)
+
+The desktop workspace also includes psutil, pyte, wcwidth, uv, keyring and their platform dependencies (including pywinpty on Windows and SecretStorage on Linux). Installed package versions are listed in `licenses/PACKAGES.txt`; the license and notice files shipped by those distributions are copied to `licenses/packages/`. Downloaded Python runtimes and packages installed in learner projects are separate from the application bundle and retain their own licenses.

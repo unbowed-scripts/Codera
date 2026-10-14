@@ -6,6 +6,7 @@ from section_content import PROJECTS, questions
 from language_catalog import LANGUAGES, FUTURE_LANGUAGES
 from themes import PALETTES, THEME_NAMES
 from ai_tutor import AiTutor
+from workspace import Workspace
 from practice_hints import PROJECT_HINT_CODES
 
 ROUTE = [
@@ -62,6 +63,11 @@ class Backend(QObject):
         self.test_results = {}
         self._tutor = AiTutor(self)
         self.tutor_drafts = {}
+        self._workspace = Workspace(self)
+
+    @Property(QObject, constant=True)
+    def workspace(self):
+        return self._workspace
 
     @Property(QObject, constant=True)
     def tutor(self):

@@ -60,7 +60,7 @@ class ContentArchiveTests(unittest.TestCase):
 
     def test_runtime_without_authored_modules_and_progress_compatibility(self):
         for name in ('backend', 'curriculum', 'section_content', 'content_models',
-                     'content_archive', 'language_catalog', 'themes', 'ai_tutor', 'practice_hints'):
+                     'content_archive', 'language_catalog', 'themes', 'ai_tutor', 'practice_hints', 'credentials', 'workspace', 'runtime_manager', 'terminal_session', 'terminal_preferences'):
             shutil.copy2(ROOT / f'{name}.py', self.path.parent)
         script = '''
 import sys

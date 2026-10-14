@@ -1,4 +1,5 @@
-"""Asynchronous, session-only credentials for a Chat Completions compatible tutor."""
+"""Asynchronous Chat Completions tutor with optional native credential storage."""
+from credentials import CredentialStore
 import json
 from PySide6.QtCore import QObject, Property, Signal, Slot, QUrl, QTimer
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
@@ -40,6 +41,9 @@ class AiTutor(QObject):
         super().__init__(backend)
         self.backend = backend
         self._key = ''
+        self._vault = CredentialStore(backend.settings.fileName())
+        self._remember = False
+        self._credential_status = ''
         self._url = backend.settings.value('ai/url', '', type=str)
         self._model = backend.settings.value('ai/model', '', type=str)
         self._connected = False
@@ -50,6 +54,66 @@ class AiTutor(QObject):
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self._timeout)
+
+    @Property(bool, notify=changed)
+    def savedKey(self):
+        return self.backend.settings.value('ai/saved', False, type=bool)
+
+    @Property(str, notify=changed)
+    def credentialStatus(self): return self._credential_status
+
+    @Slot(str, str, str, bool)
+    def connectAndRemember(self, url, model, key, remember):
+        self._connectModel(url, model, key, remember)
+
+    @Slot()
+    def connectSaved(self):
+        if self.busy or not self.savedKey: return
+        url = self.backend.settings.value('ai/savedUrl', '', type=str)
+        model = self.backend.settings.value('ai/savedModel', '', type=str)
+        try:
+            key = self._vault.load(url, model)
+            if not key: raise ValueError()
+        except Exception:
+            self._credential_status = 'Не удалось прочитать сохранённый ключ. Разблокируй системное хранилище или введи ключ заново.'
+            self.changed.emit()
+            return
+        self._remember = False
+        self.connectModel(url, model, key)
+
+    @Slot()
+    def forgetKey(self):
+        self.disconnectModel()
+        settings = self.backend.settings
+        try:
+            if self.savedKey:
+                self._vault.delete(settings.value('ai/savedUrl', '', type=str),
+                                   settings.value('ai/savedModel', '', type=str))
+            for name in ('saved', 'savedUrl', 'savedModel'): settings.remove('ai/' + name)
+            settings.sync()
+            self._credential_status = 'Сохранённый ключ удалён.'
+        except Exception:
+            self._credential_status = 'Не удалось удалить ключ из системного хранилища. Разблокируй его и повтори удаление.'
+        self.changed.emit()
+
+    def _save_key(self):
+        if not self._remember or not self._key: return
+        settings = self.backend.settings
+        try:
+            old = (settings.value('ai/savedUrl', '', type=str), settings.value('ai/savedModel', '', type=str))
+            if self.savedKey and old != (self._url, self._model):
+                self._vault.delete(*old)
+                settings.remove('ai/saved')
+            self._vault.save(self._url, self._model, self._key)
+            settings.setValue('ai/saved', True)
+            settings.setValue('ai/savedUrl', self._url)
+            settings.setValue('ai/savedModel', self._model)
+            settings.sync()
+            self._credential_status = 'Ключ сохранён в защищённом хранилище операционной системы.'
+        except Exception:
+            # Never persist credentials to QSettings or silently downgrade to a file backend.
+            self._credential_status = 'Защищённое хранилище недоступно. Ключ останется только в памяти до отключения или закрытия приложения.'
+        self._remember = False
 
     @Property(str, notify=changed)
     def url(self): return self._url
@@ -84,6 +148,7 @@ class AiTutor(QObject):
     def disconnectModel(self):
         self.cancel()
         self._key = ''
+        self._remember = False
         self._connected = False
         self._status = 'Модель отключена. Ключ удалён из памяти.'
         self._states.clear()
@@ -91,7 +156,11 @@ class AiTutor(QObject):
 
     @Slot(str, str, str)
     def connectModel(self, url, model, key):
+        self._connectModel(url, model, key, False)
+
+    def _connectModel(self, url, model, key, remember):
         self.disconnectModel()
+        self._remember = remember
         try:
             endpoint_url(url)
             if not model.strip():
@@ -103,6 +172,7 @@ class AiTutor(QObject):
             self.changed.emit()
             return
         self._url, self._model, self._key = url.strip(), model.strip(), key.strip()
+        self._credential_status = ''
         self._status = 'Проверяем модель…'
         self._send([{'role': 'user', 'content': 'Ответь коротко: подключение работает.'}], None)
 
@@ -177,6 +247,7 @@ class AiTutor(QObject):
             if error:
                 self._key = ''
             else:
+                self._save_key()
                 self.backend.settings.setValue('ai/url', self._url)
                 self.backend.settings.setValue('ai/model', self._model)
                 self.backend.settings.sync()
